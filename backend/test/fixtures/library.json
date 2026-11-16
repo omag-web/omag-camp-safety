@@ -1,0 +1,244 @@
+{
+"builtAt": "2026-11-16T00:00:00.000Z",
+"sources": {
+"oklahoma": "TEST FIXTURE",
+"federal": {}
+},
+"count": 26,
+"sections": [
+{
+"id": "63-681",
+"cite": "63 O.S. \u00a7 681",
+"heading": "Safety plans for schools and recreational campgrounds",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 63 (Public Health and Safety)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os63.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] A. Each school shall have a written safety plan. B. Each recreational campground shall maintain a written emergency action plan for flooding, natural disasters and severe weather events, identifying location-specific hazards, evacuation routes and procedures, and methods for alerting campers. The operator reviews the plan annually and files it with the local emergency management director by January 1 each year and after significant changes."
+},
+{
+"id": "63-683.3",
+"cite": "63 O.S. \u00a7 683.3",
+"heading": "Definitions",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 63 (Public Health and Safety)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os63.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] Definitions for the Oklahoma Emergency Management Act, including emergency management, local organization for emergency management and disaster."
+},
+{
+"id": "63-683.11",
+"cite": "63 O.S. \u00a7 683.11",
+"heading": "Local organizations for emergency management",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 63 (Public Health and Safety)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os63.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] Each county shall maintain an emergency management organization with an emergency management director who coordinates with municipalities."
+},
+{
+"id": "63-683.24C",
+"cite": "63 O.S. \u00a7 683.24C",
+"heading": "Definitions",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 63 (Public Health and Safety)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os63.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] As used in this act: 1. Camp facility means an operator of a facility that hosts specialty camps; 2. Emergency action plan means a written plan; 3. Hazard exposure zone means an area exposed to a severe weather hazard; 4. Outdoor program; 5. Regulating authority means the county emergency management director; 6. Severe weather hazard means flooding or flash flooding, high or straight-line winds, tornadoes, hail, lightning, extreme heat or cold, wildfire or wildfire smoke; 7. Youth camp means any program or operation that provides organized recreational, educational or residential activities for minors under eighteen, for profit or nonprofit, including day, overnight, seasonal and specialty camps."
+},
+{
+"id": "63-683.24D",
+"cite": "63 O.S. \u00a7 683.24D",
+"heading": "Applicability and exemptions",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 63 (Public Health and Safety)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os63.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] This act applies to camp facilities, youth camps and outdoor programs in this state. It does not apply to a single-day program with no oversight component, which may be subject to modified requirements by rule, or to a program operated solely by a parent or guardian for their own children."
+},
+{
+"id": "63-683.24E",
+"cite": "63 O.S. \u00a7 683.24E",
+"heading": "Site-specific hazard assessment",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 63 (Public Health and Safety)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os63.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] A. Before January 1, 2027, each camp facility, youth camp and outdoor program shall conduct a site-specific hazard assessment identifying applicable severe weather hazards, proximity to hazard exposure zones, structural vulnerabilities of buildings and shelters, and evacuation routes and shelter-in-place locations. B. The assessment shall be reviewed at least every three years and after material changes to facilities, terrain or hazard classifications. C. A copy shall be filed with the regulating authority. D. Any youth camp or outdoor program hosted at a camp facility shall utilize the site-specific hazard assessment of the camp facility."
+},
+{
+"id": "63-683.24F",
+"cite": "63 O.S. \u00a7 683.24F",
+"heading": "Emergency action plan",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 63 (Public Health and Safety)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os63.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] A. Before January 1, 2027, each shall develop an emergency action plan covering hazard monitoring and detection, decision-making authority and chain of command, criteria for evacuation versus shelter in place, primary and secondary evacuation routes, shelter standards, accountability for campers and staff, and post-event communication and reunification. B. The plan shall include a separate response protocol for each applicable severe weather hazard. C. The plan is reviewed on the same schedule and filed with the regulating authority. D. A hosted program shall utilize the emergency action plan of the camp facility."
+},
+{
+"id": "63-683.24G",
+"cite": "63 O.S. \u00a7 683.24G",
+"heading": "Severe weather warnings and alerts",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 63 (Public Health and Safety)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os63.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] A. At least two independent methods of receiving severe weather alerts, at least one of which does not depend on cellular service. B. An internal alert system to promptly notify staff and campers. C. Procedures for notifying parents or guardians during an emergency."
+},
+{
+"id": "63-683.24H",
+"cite": "63 O.S. \u00a7 683.24H",
+"heading": "Shelters and sleeping facilities",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 63 (Public Health and Safety)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os63.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] A. Camp facilities and youth camps with identified hazards shall provide shelters rated for expected wind or impact loads, located outside high-risk hazard exposure zones where feasible, clearly marked and accessible. B. The regulating authority may prohibit or condition sleeping facilities in high-risk zones and temporary structures, such as tents, that cannot withstand foreseeable severe weather."
+},
+{
+"id": "63-683.24I",
+"cite": "63 O.S. \u00a7 683.24I",
+"heading": "Staff training, drills and records",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 63 (Public Health and Safety)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os63.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] A. Camp facility, youth camp and outdoor program staff shall receive annual training on emergency procedures and hazard recognition. B. Periodic drills appropriate to site hazards shall be conducted. C. Training records shall be available for inspection by the regulating authority."
+},
+{
+"id": "63-683.24J",
+"cite": "63 O.S. \u00a7 683.24J",
+"heading": "Hazard disclosure and acknowledgment",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 63 (Public Health and Safety)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os63.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] Before participation, a youth camp shall provide written disclosure of material severe weather hazards and general emergency procedures, and obtain acknowledgment of receipt from the participant or, for a minor, a parent or guardian."
+},
+{
+"id": "63-683.24K",
+"cite": "63 O.S. \u00a7 683.24K",
+"heading": "Rules and enforcement",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 63 (Public Health and Safety)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os63.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] The regulating authority shall adopt rules to implement this act, including hazard-specific standards, compliance timelines and variance procedures, and may require corrective action plans, impose civil penalties or order closure for material noncompliance."
+},
+{
+"id": "51-152",
+"cite": "51 O.S. \u00a7 152",
+"heading": "Definitions",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 51 (Officers)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os51.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] Definitions for the Governmental Tort Claims Act, including political subdivision, municipality, employee and scope of employment."
+},
+{
+"id": "51-153",
+"cite": "51 O.S. \u00a7 153",
+"heading": "Liability",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 51 (Officers)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os51.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] The state or a political subdivision is liable for loss resulting from its torts or the torts of its employees acting within the scope of employment, subject to the limits of this act."
+},
+{
+"id": "51-155",
+"cite": "51 O.S. \u00a7 155",
+"heading": "Exemptions from liability",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 51 (Officers)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os51.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] A political subdivision is not liable for a loss resulting from natural conditions of property, acts of God, or the performance of a discretionary function, among other exemptions."
+},
+{
+"id": "82-1601",
+"cite": "82 O.S. \u00a7 1601",
+"heading": "Short title",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 82 (Waters and Water Rights)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os82.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] This act shall be known as the Oklahoma Floodplain Management Act."
+},
+{
+"id": "82-1602",
+"cite": "82 O.S. \u00a7 1602",
+"heading": "Definitions",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 82 (Waters and Water Rights)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os82.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] Definitions including floodplain, floodplain administrator, flood hazard area and base flood elevation."
+},
+{
+"id": "63-683.13",
+"cite": "63 O.S. \u00a7 683.13",
+"heading": "Emergency management provision 1",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 63 (Public Health and Safety)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os63.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] Emergency management test filler section number 1 about county coordination, disaster declarations and mutual aid."
+},
+{
+"id": "63-683.14",
+"cite": "63 O.S. \u00a7 683.14",
+"heading": "Emergency management provision 2",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 63 (Public Health and Safety)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os63.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] Emergency management test filler section number 2 about county coordination, disaster declarations and mutual aid."
+},
+{
+"id": "63-683.15",
+"cite": "63 O.S. \u00a7 683.15",
+"heading": "Emergency management provision 3",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 63 (Public Health and Safety)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os63.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] Emergency management test filler section number 3 about county coordination, disaster declarations and mutual aid."
+},
+{
+"id": "63-683.16",
+"cite": "63 O.S. \u00a7 683.16",
+"heading": "Emergency management provision 4",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 63 (Public Health and Safety)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os63.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] Emergency management test filler section number 4 about county coordination, disaster declarations and mutual aid."
+},
+{
+"id": "63-683.17",
+"cite": "63 O.S. \u00a7 683.17",
+"heading": "Emergency management provision 5",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 63 (Public Health and Safety)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os63.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] Emergency management test filler section number 5 about county coordination, disaster declarations and mutual aid."
+},
+{
+"id": "63-683.18",
+"cite": "63 O.S. \u00a7 683.18",
+"heading": "Emergency management provision 6",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 63 (Public Health and Safety)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os63.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] Emergency management test filler section number 6 about county coordination, disaster declarations and mutual aid."
+},
+{
+"id": "63-683.19",
+"cite": "63 O.S. \u00a7 683.19",
+"heading": "Emergency management provision 7",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 63 (Public Health and Safety)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os63.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] Emergency management test filler section number 7 about county coordination, disaster declarations and mutual aid."
+},
+{
+"id": "63-683.20",
+"cite": "63 O.S. \u00a7 683.20",
+"heading": "Emergency management provision 8",
+"jurisdiction": "OK",
+"source": "Oklahoma Statutes, Title 63 (Public Health and Safety)",
+"url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os63.pdf",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] Emergency management test filler section number 8 about county coordination, disaster declarations and mutual aid."
+},
+{
+"id": "44-CFR-60.3",
+"cite": "44 C.F.R. \u00a7 60.3",
+"heading": "Flood plain management criteria for flood-prone areas",
+"jurisdiction": "US",
+"source": "44 C.F.R. Part 60 (NFIP floodplain management)",
+"url": "https://www.ecfr.gov/current/title-44/section-60.3",
+"text": "[Test fixture: paraphrased for tests, not the statute text.] Minimum floodplain management criteria a community must adopt for flood-prone areas, including permits and elevation of structures in special flood hazard areas."
+}
+]
+}

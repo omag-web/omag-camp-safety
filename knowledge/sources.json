@@ -1,0 +1,70 @@
+{
+  "_comment": "Which laws Ranger can search. Oklahoma titles come from the Legislature's complete-title PDFs; federal parts (none yet) come from the eCFR API. 'include' is a list of regular expressions matched against section ids like 63-683.24E. 'bills' fill in new-law sections a title PDF doesn't have yet (the title's text wins once it does). Edit this file, or the Statute library page in the admin panel, to change what Ranger knows.",
+  "oklahoma": [
+    {
+      "title": "63",
+      "name": "Public Health and Safety",
+      "url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os63.pdf",
+      "include": [
+        "^63-681(\\.|$)",
+        "^63-683\\."
+      ],
+      "_why": "The camp safety law (HB 1675: 63 O.S. 683.24C-683.24K), recreational campground emergency action plans (63 O.S. 681), and the rest of the Oklahoma Emergency Management Act (county and local emergency management)"
+    },
+    {
+      "title": "51",
+      "name": "Officers",
+      "url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os51.pdf",
+      "include": [
+        "^51-1(5[1-9]|[6-9][0-9])(\\.|$)",
+        "^51-200(\\.|$)"
+      ],
+      "_why": "Governmental Tort Claims Act (151-200): municipal liability for parks, camps and campgrounds"
+    },
+    {
+      "title": "82",
+      "name": "Waters and Water Rights",
+      "url": "https://oklegislature.gov/OK_Statutes/CompleteTitles/os82.pdf",
+      "include": [
+        "^82-16(0[1-9]|1[0-9])(\\.|$)"
+      ],
+      "_why": "Oklahoma Floodplain Management Act (1601-1619): floodplain administrators and flood hazard areas, for hazard exposure zones"
+    }
+  ],
+  "federal": [],
+  "bills": [
+    {
+      "name": "HB 1675 (2026), enrolled",
+      "title": "63",
+      "url": "https://www.oklahoma.gov/content/dam/ok/en/oem/documents/programs-and-services/HB1675-Enrolled.pdf",
+      "headings": {
+        "683.24C": "Definitions",
+        "683.24D": "Applicability and exemptions",
+        "683.24E": "Site-specific hazard assessment",
+        "683.24F": "Emergency action plan",
+        "683.24G": "Severe weather warnings and alerts",
+        "683.24H": "Shelters and sleeping facilities",
+        "683.24I": "Staff training, drills and records",
+        "683.24J": "Hazard disclosure and acknowledgment",
+        "683.24K": "Rules and enforcement"
+      },
+      "_why": "Fallback for the camp safety sections until the Legislature's Title 63 PDF includes them"
+    }
+  ],
+  "required": [
+    "63-681",
+    "63-683.24C",
+    "63-683.24D",
+    "63-683.24E",
+    "63-683.24F",
+    "63-683.24G",
+    "63-683.24H",
+    "63-683.24I",
+    "63-683.24J",
+    "63-683.24K"
+  ],
+  "mention": {
+    "63-681": "campground"
+  },
+  "_required": "Sections every build must contain. The build fails if one is missing, and Ranger keeps using the last good library. 'mention' warns when a section's text lacks a word (e.g. 63-681 should mention campgrounds once HB 1675's amendment is in the title PDF)."
+}

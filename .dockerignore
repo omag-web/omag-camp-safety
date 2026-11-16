@@ -1,0 +1,8 @@
+# Keeps the worker image build (backend/worker.Dockerfile) small.
+**/node_modules
+**/.aws-sam
+.git
+.github
+web
+docs
+backend/test

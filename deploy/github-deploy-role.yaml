@@ -1,0 +1,96 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  Lets GitHub Actions in omag-web/omag-camp-safety deploy Ranger (the ranger-camp-safety stack) without stored AWS keys.
+  GitHub proves who it is with a short-lived OpenID Connect token; only the main branch of this
+  one repository can use the role. Deploy once:
+    aws cloudformation deploy --template-file deploy/github-deploy-role.yaml --stack-name ranger-camp-safety-github-deploy --capabilities CAPABILITY_NAMED_IAM
+
+Parameters:
+  CreateGitHubOidcProvider:
+    Type: String
+    AllowedValues: ['true', 'false']
+    Default: 'false'
+    Description: >-
+      Leave false. OMAG's account already has the token.actions.githubusercontent.com identity provider
+      (Pip's deploy-role stack created it); Ranger reuses it and never changes or deletes it.
+  Repository:
+    Type: String
+    Default: omag-web/omag-camp-safety
+  RepositoryWithIds:
+    Type: String
+    Default: 'omag-web@312579818/omag-camp-safety@REPO_ID'
+    Description: >-
+      The same repository as GitHub names it in newer identity tokens, with the owner and repository
+      ID numbers. IDs never change, so a deleted-and-recreated repository with the same name can't
+      use this role. Optional: replace REPO_ID with the number from
+      `gh api repos/omag-web/omag-camp-safety --jq .id`. The plain name below works either way.
+  AppStackName:
+    Type: String
+    Default: ranger-camp-safety
+
+Conditions:
+  CreateProvider: !Equals [!Ref CreateGitHubOidcProvider, 'true']
+
+Resources:
+  GitHubOidcProvider:
+    Type: AWS::IAM::OIDCProvider
+    Condition: CreateProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList: [sts.amazonaws.com]
+      ThumbprintList:
+        - 6938fd4d98bab03faadb97b34396831e3780aea1
+        - 1c58a3a8518e8759bf075b76b750d4f2df264fcd
+
+  DeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ranger-camp-safety-github-deploy
+      Description: Assumed by GitHub Actions (omag-web/omag-camp-safety, main branch) to deploy Ranger.
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Sub arn:aws:iam::${AWS::AccountId}:oidc-provider/token.actions.githubusercontent.com
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+                # GitHub sends one of these, depending on the organization's token format.
+                token.actions.githubusercontent.com:sub:
+                  - !Sub repo:${RepositoryWithIds}:ref:refs/heads/main
+                  - !Sub repo:${Repository}:ref:refs/heads/main
+      ManagedPolicyArns:
+        # Everything SAM needs (CloudFormation, Lambda, S3, DynamoDB, SNS, Cognito, EventBridge,
+        # CloudWatch), except IAM...
+        - arn:aws:iam::aws:policy/PowerUserAccess
+      Policies:
+        - PolicyName: manage-ranger-roles-only
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # ...and IAM only for the roles CloudFormation creates for Ranger itself.
+              - Effect: Allow
+                Action:
+                  - iam:CreateRole
+                  - iam:DeleteRole
+                  - iam:GetRole
+                  - iam:PassRole
+                  - iam:TagRole
+                  - iam:UntagRole
+                  - iam:UpdateRole
+                  - iam:UpdateAssumeRolePolicy
+                  - iam:AttachRolePolicy
+                  - iam:DetachRolePolicy
+                  - iam:PutRolePolicy
+                  - iam:GetRolePolicy
+                  - iam:DeleteRolePolicy
+                  - iam:ListRolePolicies
+                  - iam:ListAttachedRolePolicies
+                Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/${AppStackName}-*
+
+Outputs:
+  RoleArn:
+    Value: !GetAtt DeployRole.Arn

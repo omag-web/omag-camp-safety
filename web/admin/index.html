@@ -1,0 +1,1779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Ranger Admin – OMAG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#16324f;--navy-2:#1f4166;--navy-3:#24486e;--navy-line:#2c4c6f;
+  --accent:#3a6a9a;--accent-dk:#2b5785;--accent-bg:#eaf1f8;--accent-line:#c9daea;
+  --gold:#d4a72c;--gold-bg:#fbf6e6;--gold-line:#ecdcaa;
+  --ink:#1c2733;--ink-2:#3c4855;--muted:#5a6675;--line:#e3e7ec;--line-2:#d3dae2;--bg:#f6f7f9;
+  --ok:#1f7a4d;--ok-bg:#e8f5ee;--warn:#8a5a00;--warn-bg:#fdf3dc;--bad:#b4332b;--bad-bg:#fbeaea;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:'Public Sans',system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:15px;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--accent-dk)}
+:focus-visible{outline:3px solid #7fb0e0;outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+[hidden]{display:none!important}
+
+/* layout */
+.app{display:flex;min-height:100vh}
+.side{width:236px;flex:none;background:var(--navy);color:#e8eef5;display:flex;flex-direction:column;gap:18px;padding:18px 12px;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 8px}
+.brand svg{width:38px;height:38px}
+.brand b{display:block;font-size:15px}
+.brand span{font-size:12px;color:#a9bccf}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 12px;border:none;border-radius:8px;background:none;color:#dbe5ef;font-size:14px;text-align:left;border-left:3px solid transparent}
+.nav button:hover{background:var(--navy-2);color:#fff}
+.nav button[aria-current="page"]{background:var(--navy-3);color:#fff;border-left-color:var(--gold)}
+.nav .count{margin-left:auto;font-size:11px;font-weight:700;background:var(--gold);color:var(--navy);border-radius:999px;padding:1px 7px}
+.side-foot{margin-top:auto;border-top:1px solid var(--navy-line);padding:12px 8px 0;font-size:12.5px;color:#a9bccf;display:flex;flex-direction:column;gap:8px}
+.side-foot button{background:none;border:1px solid var(--navy-line);color:#dbe5ef;border-radius:8px;min-height:34px}
+.side-foot a{color:#dbe5ef}
+.main{flex:1;min-width:0;padding:26px 32px 60px}
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.page-head h1{margin:0;font-size:24px;letter-spacing:-.3px}
+.page-head p{margin:4px 0 0;color:var(--muted);font-size:14px;max-width:720px;line-height:1.5}
+.banner{padding:10px 14px;border-radius:10px;background:var(--gold-bg);border:1px solid var(--gold-line);color:#3d3110;font-size:13.5px;margin-bottom:16px}
+
+/* pieces */
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}
+.card h2{margin:0 0 4px;font-size:16px}
+.card .sub{margin:0 0 12px;color:var(--muted);font-size:13px;line-height:1.45}
+.grid{display:grid;gap:16px}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.split{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+.stat .label{font-size:12.5px;color:var(--muted);font-weight:600}
+.stat .value{font-size:28px;font-weight:700;margin-top:4px;letter-spacing:-.5px}
+.stat .hint{font-size:12.5px;color:var(--muted);margin-top:2px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:0 14px;border-radius:8px;border:1px solid var(--line-2);background:#fff;font-size:14px;font-weight:600;white-space:nowrap}
+.btn:hover{background:#f3f6f9}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent-dk)}
+.btn.danger{color:var(--bad);border-color:#f0c4c0}
+.btn.sm{min-height:32px;padding:0 10px;font-size:13px}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label,.label-s{font-size:13px;font-weight:600;color:var(--ink-2)}
+.hint{font-size:12.5px;color:var(--muted);line-height:1.45}
+.input,.select,textarea{width:100%;border:1px solid #c4ced8;border-radius:8px;padding:8px 11px;background:#fff;font-size:14.5px}
+.input:focus,.select:focus,textarea:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px rgba(58,106,154,.16)}
+textarea.code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13.5px;line-height:1.55;min-height:440px;resize:vertical}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}.pill.warn{background:var(--warn-bg);color:var(--warn)}.pill.bad{background:var(--bad-bg);color:var(--bad)}.pill.muted{background:#eef1f4;color:var(--ink-2)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr.click:hover td{background:#f7f9fb;cursor:pointer}
+.empty{padding:28px;text-align:center;color:var(--muted);font-size:14px}
+.trunc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px}
+details summary{cursor:pointer;font-weight:600;font-size:14px}
+pre.log{white-space:pre-wrap;word-break:break-word;background:#f7f9fb;border:1px solid var(--line);border-radius:8px;padding:10px 12px;max-height:320px;overflow:auto;margin:8px 0 0}
+.ed-row{border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;gap:8px}
+.ed-row .g{display:grid;gap:8px}
+.q-row{border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;grid-template-columns:1fr 200px;gap:8px 12px}
+@media (max-width:900px){.q-row{grid-template-columns:1fr}}
+.locked{font-size:13px;color:var(--ink-2);line-height:1.55;background:#f7f9fb;border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-top:10px}
+.locked ul{margin:6px 0 0;padding-left:18px}
+
+/* chart */
+.chart{position:relative;height:150px;display:flex;align-items:flex-end;gap:2px;padding:0 2px;border-bottom:1px solid var(--line)}
+.bar{flex:1;min-width:3px;display:flex;align-items:flex-end;height:100%;position:relative}
+.bar i{display:block;width:100%;background:var(--accent);border-radius:4px 4px 0 0;min-height:0}
+.bar:hover i,.bar:focus i{background:var(--navy)}
+.bar .tip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;font-size:12px;padding:4px 8px;border-radius:6px;white-space:nowrap;z-index:2;pointer-events:none}
+.bar:hover .tip,.bar:focus .tip{display:block}
+.axis{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-top:6px}
+
+/* analytics */
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:9px;overflow:hidden;background:#fff}
+.seg button{border:none;background:none;min-height:36px;padding:0 13px;font-size:13.5px;font-weight:600;color:var(--ink-2);border-right:1px solid var(--line)}
+.seg button:last-child{border-right:none}
+.seg button[aria-pressed="true"]{background:var(--navy);color:#fff}
+.delta{font-size:12.5px;color:var(--muted);margin-top:2px}
+.delta b{color:var(--ink-2);font-weight:700}
+.blist{display:flex;flex-direction:column;gap:9px}
+.brow{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:4px 10px;align-items:center;font-size:13.5px}
+.brow .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.brow .n{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.brow .track{grid-column:1 / -1;height:8px;border-radius:4px;background:#eef2f6;overflow:hidden}
+.brow .track i{display:block;height:100%;background:var(--accent);border-radius:4px}
+.chart.small{height:110px}
+.chart.small .bar{min-width:6px}
+.axis.hours span{flex:1;text-align:center}
+.fb{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.fb:last-child{border-bottom:none}
+
+/* templates */
+.tpl-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start;padding:14px 4px;border-bottom:1px solid var(--line)}
+.tpl-row:last-child{border-bottom:none}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;background:#eef1f4;color:var(--ink-2);font-size:12px;font-weight:600}
+.chip.on{background:var(--accent-bg);color:var(--accent-dk)}
+.tq{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;background:#fff}
+.tq .full{grid-column:1 / -1}.tq .half{grid-column:span 2}
+.tq-head{grid-column:1 / -1;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tq-key{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;color:var(--accent-dk);background:var(--accent-bg);border-radius:6px;padding:2px 7px}
+.tq.unused{opacity:.65;border-style:dashed}
+.files td,.files th{padding:8px 10px}
+.syntax code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;background:#f1f4f7;border-radius:5px;padding:1px 5px}
+@media (max-width:980px){.tq{grid-template-columns:1fr 1fr}.tq .half{grid-column:1 / -1}}
+/* chat preview */
+.chat{display:flex;flex-direction:column;gap:12px;max-height:520px;overflow:auto;padding:4px 2px 2px}
+.q{align-self:flex-end;background:var(--accent-bg);border-radius:12px 12px 3px 12px;padding:8px 12px;max-width:88%;font-size:14px}
+.a{font-size:14px;line-height:1.6}
+.a p{margin:0 0 8px}.a ul,.a ol{margin:0 0 8px;padding-left:20px}
+.a .status{color:var(--muted);font-size:13px}
+.cite{display:inline-flex;padding:0 7px;margin:0 1px;border-radius:6px;background:var(--accent-bg);border:1px solid var(--accent-line);color:var(--accent-dk);font-size:12px;font-weight:600;white-space:nowrap;line-height:1.7}
+.cite:hover{background:#dce9f6}
+.cite.omag{background:var(--gold-bg);border-color:var(--gold-line);color:#5c4400}
+
+/* drop zone */
+.drop{border:2px dashed var(--line-2);border-radius:12px;padding:22px;text-align:center;color:var(--muted);font-size:14px;transition:.15s}
+.drop.over{border-color:var(--accent);background:var(--accent-bg);color:var(--accent-dk)}
+.add-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.add-web{border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.add-web h3{margin:0;font-size:15px}
+.url{display:block;max-width:min(520px,100%);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;margin-top:2px}
+.warnbox{margin-top:6px;padding:6px 10px;border-radius:8px;background:var(--warn-bg);color:var(--warn);font-size:12.5px;line-height:1.45}
+@media (max-width:980px){.add-grid{grid-template-columns:1fr}}
+
+/* drawer / modal */
+.scrim{position:fixed;inset:0;background:rgba(14,30,48,.4);z-index:40}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(640px,100%);background:#fff;z-index:50;display:flex;flex-direction:column;box-shadow:-8px 0 30px rgba(14,30,48,.2)}
+.drawer header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.drawer header h2{margin:0;font-size:17px}
+.drawer .body{padding:18px 20px;overflow:auto;flex:1}
+.icon-btn{width:36px;height:36px;border-radius:8px;border:none;background:transparent;display:inline-flex;align-items:center;justify-content:center;color:var(--muted)}
+.icon-btn:hover{background:#f1f4f7;color:var(--ink)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 18px;border-radius:10px;font-size:14px;z-index:90;box-shadow:0 8px 24px rgba(14,30,48,.3);max-width:90vw}
+
+/* login */
+.login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--navy)}
+.login .card{width:min(400px,100%);padding:28px;display:flex;flex-direction:column;gap:14px}
+.login h1{margin:0;font-size:20px}
+.err{color:var(--bad);font-size:13.5px}
+
+@media (max-width:980px){
+  .app{flex-direction:column}
+  .side{width:auto;height:auto;position:static;flex-direction:row;flex-wrap:wrap;align-items:center}
+  .nav{flex-direction:row;flex-wrap:wrap}
+  .side-foot{margin:0;border:none;padding:0;flex-direction:row}
+  .main{padding:18px 14px 40px}
+  .g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .g2,.split{grid-template-columns:1fr}
+}
+.mfa-qr{display:flex;flex-direction:column;align-items:center;gap:6px;margin:12px 0 4px}
+.mfa-qr svg{width:180px;height:180px;background:#fff;border-radius:8px}
+.mfa-qr .mono{font-size:12px;word-break:break-all;text-align:center}
+
+dialog.ranger-dialog{border:none;border-radius:14px;padding:0;width:min(460px,calc(100vw - 32px));box-shadow:0 24px 60px rgba(15,35,55,.28);color:inherit}
+dialog.ranger-dialog::backdrop{background:rgba(15,30,45,.45)}
+dialog.ranger-dialog form{padding:22px 22px 18px;display:flex;flex-direction:column;gap:14px}
+dialog.ranger-dialog h2{margin:0;font-size:17px}
+dialog.ranger-dialog p{margin:0;font-size:14.5px;line-height:1.55;white-space:pre-line}
+.ranger-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+.btn.danger-solid{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn.danger-solid:hover{filter:brightness(.92)}
+</style>
+</head>
+<body>
+
+<!-- ===== Sign in ===== -->
+<div class="login" id="login" hidden>
+  <form class="card" id="login-form" autocomplete="on">
+    <div class="row" style="gap:12px"><span id="login-icon" style="width:44px;height:44px;display:inline-flex"></span><div><h1>Ranger admin</h1><div class="hint">OMAG staff only</div></div></div>
+    <div id="login-step-pw">
+      <div class="field"><label for="li-email">Email</label><input class="input" id="li-email" type="email" autocomplete="username" required></div>
+      <div class="field" style="margin-top:10px"><label for="li-pw">Password</label><input class="input" id="li-pw" type="password" autocomplete="current-password" required></div>
+    </div>
+    <div id="login-step-new" hidden>
+      <p class="hint" style="margin:0">Choose your own password: at least 12 characters, with upper- and lowercase letters and a number.</p>
+      <div class="field" style="margin-top:10px"><label for="li-new">New password</label><input class="input" id="li-new" type="password" autocomplete="new-password"></div>
+    </div>
+    <div id="login-step-reset" hidden>
+      <p class="hint" style="margin:0">We emailed a code to your address. Enter it and choose a new password.</p>
+      <div class="field" style="margin-top:10px"><label for="li-code">Code</label><input class="input" id="li-code" inputmode="numeric" autocomplete="one-time-code"></div>
+      <div class="field" style="margin-top:10px"><label for="li-reset-pw">New password</label><input class="input" id="li-reset-pw" type="password" autocomplete="new-password"></div>
+    </div>
+    <div id="login-step-mfa" hidden>
+      <p class="hint" style="margin:0">Open your authenticator app and enter the 6-digit code for Ranger admin.</p>
+      <div class="field" style="margin-top:10px"><label for="li-mfa">Code</label><input class="input" id="li-mfa" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></div>
+    </div>
+    <div id="login-step-mfasetup" hidden>
+      <p class="hint" style="margin:0">Two-step sign-in is required. Scan this with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy), then enter the 6-digit code it shows.</p>
+      <div class="mfa-qr" id="li-qr"></div>
+      <div class="field" style="margin-top:10px"><label for="li-setup-code">Code</label><input class="input" id="li-setup-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></div>
+    </div>
+    <div class="err" id="login-err" role="alert"></div>
+    <button class="btn primary" type="submit" id="login-btn">Sign in</button>
+    <button class="btn" type="button" id="forgot-btn" style="border:none;background:none;color:var(--accent-dk);font-weight:600">Forgot password?</button>
+  </form>
+</div>
+
+<!-- ===== App ===== -->
+<div class="app" id="app" hidden>
+  <nav class="side" aria-label="Admin sections">
+    <div class="brand"><span id="side-icon" style="display:inline-flex"></span><div><b>Ranger admin</b><span>OMAG's camp safety assistant</span></div></div>
+    <div class="nav" id="nav">
+      <button data-page="analytics" aria-current="page">Analytics</button>
+      <button data-page="instructions">Instructions</button>
+      <button data-page="documents">OMAG documents</button>
+      <button data-page="templates">Document templates</button>
+      <button data-page="conversations">Conversations</button>
+      <button data-page="messages">Talk to OMAG <span class="count" id="msg-count" hidden></span></button>
+      <button data-page="settings">Settings</button>
+      <button data-page="library">Statute library</button>
+      <button data-page="checks">Answer checks</button>
+      <button data-page="admins">Admins</button>
+    </div>
+    <div class="side-foot">
+      <span id="who"></span>
+      <a href="../" target="_blank" rel="noopener">Open Ranger ↗</a>
+      <button type="button" id="signout">Sign out</button>
+    </div>
+  </nav>
+  <main class="main" id="main" tabindex="-1">
+    <div class="banner" id="dev-banner" hidden><strong>Local mode.</strong> No sign-in, and changes are kept in memory only until the dev server stops.</div>
+
+    <!-- Overview -->
+    <section data-section="analytics">
+      <div class="page-head">
+        <div><h1>Analytics</h1><p>How members use Ranger. Times are Oklahoma time. Admin previews aren't counted. <span id="an-compare"></span></p></div>
+        <div class="row">
+          <div class="seg" role="group" aria-label="Time range" id="an-range">
+            <button data-days="7">7 days</button><button data-days="30" aria-pressed="true">30 days</button><button data-days="90">90 days</button><button data-days="365">12 months</button>
+          </div>
+          <button class="btn" id="an-csv">Download CSV</button>
+        </div>
+      </div>
+      <div class="grid g4" id="an-kpi1"></div>
+      <div class="grid g4" id="an-kpi2" style="margin-top:16px"></div>
+      <div class="card" style="margin-top:16px"><h2 id="an-series-title">Questions per day</h2><p class="sub" id="an-series-sub"></p><div id="an-series"></div></div>
+      <div class="grid g2" style="margin-top:16px">
+        <div class="card"><h2>What members ask about</h2><p class="sub">Topics of the laws Ranger cited. A question can cover more than one topic.</p><div id="an-topics"></div></div>
+        <div class="card"><h2>Most-cited sections</h2><p class="sub">Click one to read it.</p><div id="an-sections"></div></div>
+      </div>
+      <div class="grid g2" style="margin-top:16px">
+        <div class="card"><h2>When members ask</h2><p class="sub">By hour of the day</p><div id="an-hours"></div><p class="sub" style="margin:16px 0 8px">By day of the week</p><div id="an-weekdays"></div></div>
+        <div class="card"><h2>Who's asking</h2><p class="sub">Program type</p><div id="an-forms"></div><p class="sub" style="margin:18px 0 8px" id="an-cities-sub">Municipalities (as typed by members)</p><div id="an-cities"></div></div>
+      </div>
+      <div class="grid g2" style="margin-top:16px">
+        <div class="card"><h2>Documents built</h2><p class="sub" id="an-docs-sub">From OMAG's templates</p><div id="an-docs"></div></div>
+        <div class="card"><h2>Recent 👎 answers</h2><p class="sub">Worth reading: these show where Ranger's instructions or OMAG documents could help.</p><div id="an-feedback"></div></div>
+      </div>
+      <div class="card" style="margin-top:16px"><h2>Ranger's setup</h2><div id="ov-setup" class="hint" style="font-size:14px;line-height:1.8"></div></div>
+    </section>
+
+    <!-- Instructions -->
+    <section data-section="instructions" hidden>
+      <div class="page-head">
+        <div><h1>Instructions</h1><p>OMAG's guidance for how Ranger answers: tone, standing rules, when to send members to OMAG. Edit a draft, test it in the preview, then publish. Members only see published instructions.</p></div>
+      </div>
+      <div class="split">
+        <div class="card">
+          <div class="row" style="justify-content:space-between;margin-bottom:10px">
+            <div class="row"><strong>Draft</strong><span id="ins-state" class="pill muted"></span></div>
+            <span class="hint" id="ins-live-meta"></span>
+          </div>
+          <label for="ins-text" class="sr-only">Instructions</label>
+          <textarea id="ins-text" class="code" spellcheck="true"></textarea>
+          <div class="row" style="margin-top:12px;justify-content:space-between">
+            <div class="row">
+              <button class="btn" id="ins-save">Save draft</button>
+              <button class="btn" id="ins-discard">Discard draft</button>
+            </div>
+            <div class="row">
+              <label for="ins-note" class="sr-only">Change note</label>
+              <input class="input" id="ins-note" placeholder="What changed? (optional)" style="width:220px">
+              <button class="btn primary" id="ins-publish">Publish</button>
+            </div>
+          </div>
+          <details style="margin-top:16px">
+            <summary>What Ranger always does (can't be edited here)</summary>
+            <div class="locked">These rules are built into Ranger's code so they can't be removed by accident:
+              <ul>
+                <li>Says it's an AI assistant provided by OMAG, not OMAG staff and not a lawyer.</li>
+                <li>Searches the statute library and reads the actual sections before answering legal questions.</li>
+                <li>Cites only sections it actually read; unverified citations are removed automatically.</li>
+                <li>Never presents itself as legal counsel.</li>
+                <li>Never repeats personal details back. Social Security, card, account and license numbers and birth dates are removed before a message reaches the AI or is saved.</li>
+                <li>Uses the member's selected program type and its Title 63 starting points.</li>
+              </ul>
+            </div>
+          </details>
+          <details style="margin-top:12px" id="ins-history-box">
+            <summary>Version history</summary>
+            <div id="ins-history" style="margin-top:10px"></div>
+          </details>
+        </div>
+        <div class="card">
+          <div class="row" style="justify-content:space-between;margin-bottom:6px">
+            <h2>Preview</h2>
+            <div class="row">
+              <label for="pv-form" class="sr-only">Program type</label>
+              <select class="select" id="pv-form" style="width:auto;padding:5px 8px;font-size:13px">
+                <option value="unsure">Not sure yet / several</option><option value="camp">Youth camp or outdoor program</option><option value="facility">Camp facility</option><option value="campground">Recreational campground</option>
+              </select>
+              <button class="btn sm" id="pv-reset">Clear</button>
+            </div>
+          </div>
+          <p class="sub">Uses the text in the editor (even unsaved). Previews aren't shown to members or counted in stats.</p>
+          <div class="chat" id="pv-chat"><div class="empty">Ask a question to see how Ranger answers with these instructions.</div></div>
+          <form class="row" id="pv-form-ask" style="margin-top:12px;flex-wrap:nowrap">
+            <label for="pv-q" class="sr-only">Test question</label>
+            <input class="input" id="pv-q" placeholder="e.g. Does our summer day camp count as a youth camp?" autocomplete="off">
+            <button class="btn primary" type="submit" id="pv-send">Ask</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Documents -->
+    <section data-section="documents" hidden>
+      <div class="page-head"><div><h1>OMAG documents &amp; websites</h1><p>Give Ranger OMAG guidance to search and cite: upload memos, FAQs, checklists or program guides, or add web pages (OEM's camp safety page and checklist, for example). Ranger uses the ones that are switched on. Statutes and regulations still take priority over guidance.</p></div></div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="add-grid">
+          <div class="drop" id="drop">
+            <p style="margin:0 0 10px"><strong>Drop a PDF, Word (.docx) or text file here</strong>, or</p>
+            <label class="btn" for="file-input" style="cursor:pointer">Choose a file</label>
+            <input type="file" id="file-input" accept=".pdf,.docx,.txt,.md" class="sr-only">
+            <p class="hint" style="margin:10px 0 0">Up to 15 MB. Scanned PDFs need OCR first (they're pictures of text).</p>
+          </div>
+          <form class="add-web" id="web-form">
+            <h3>Add a web page</h3>
+            <div class="field"><label for="web-url">Address</label><input class="input" id="web-url" type="text" inputmode="url" placeholder="https://www.omag.org/…" autocomplete="off" required></div>
+            <div class="field"><label for="web-title">Title Ranger cites it by <span class="hint">(optional; uses the page's own title)</span></label><input class="input" id="web-title" maxlength="120"></div>
+            <div class="row" style="justify-content:space-between"><span class="hint">Ranger re-checks the page every day for changes.</span><button class="btn primary" type="submit" id="web-add">Add page</button></div>
+          </form>
+        </div>
+        <div id="upload-status" class="hint" style="margin-top:12px" role="status"></div>
+        <p class="hint" style="margin:8px 0 0">One address adds one page, not the whole site; add each page you want Ranger to use. Files are cited as "OMAG: title" unless you name another publisher when uploading (for example, OML for the OML Handbook). Pages from omag.org are cited as "OMAG"; other sites by the page title, with the site named in the source.</p>
+      </div>
+      <div class="card" style="padding:6px 6px 0"><div id="docs-table"></div></div>
+    </section>
+
+    <!-- Conversations -->
+    <section data-section="conversations" hidden>
+      <div class="page-head">
+        <div><h1>Conversations</h1><p>What members asked and what Ranger answered. Click a row to see the whole conversation. Members aren't identified; only the city they typed, if any.</p></div>
+        <div class="row">
+          <label for="cv-days" class="sr-only">Time range</label>
+          <select class="select" id="cv-days" style="width:auto"><option value="7">Last 7 days</option><option value="14" selected>Last 14 days</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option></select>
+          <label class="row" style="gap:6px;font-size:14px"><input type="checkbox" id="cv-down"> 👎 only</label>
+          <label for="cv-search" class="sr-only">Search</label>
+          <input class="input" id="cv-search" placeholder="Search questions…" style="width:200px">
+        </div>
+      </div>
+      <div class="card" style="padding:6px 6px 0"><div id="cv-table"></div></div>
+    </section>
+
+    <!-- Messages -->
+    <section data-section="messages" hidden>
+      <div class="page-head"><div><h1>Talk to OMAG</h1><p>Messages members sent with the "Talk to OMAG" button. Each one is also emailed to the people under <a href="#settings" data-goto="settings">Settings → Who gets Ranger's emails</a>.</p></div></div>
+      <div id="msg-list" class="grid"></div>
+    </section>
+
+    <!-- Document templates -->
+    <section data-section="templates" hidden>
+      <div id="tpl-list-view">
+        <div class="page-head">
+          <div><h1>Document templates</h1><p>OMAG's Word documents that members fill in and download, such as the hazard assessment and emergency action plan. Upload a Word file with <code>{{fields}}</code> where answers go; Ranger finds them and asks members those questions. Members see the templates that are switched on.</p></div>
+          <div class="row">
+            <button class="btn" id="tpl-import-btn">Import a template pack</button>
+            <input type="file" id="tpl-import-file" accept=".zip" class="sr-only">
+            <button class="btn" id="tpl-export">Download all (backup)</button>
+            <button class="btn primary" id="tpl-new">New template</button>
+          </div>
+        </div>
+        <div class="card" style="padding:4px 14px"><div id="tpl-table"></div></div>
+        <details class="card" style="margin-top:16px"><summary>How to make or update a template</summary>
+          <div class="syntax hint" style="font-size:13.5px;line-height:1.7;margin-top:8px;color:var(--ink-2)">
+            <p style="margin:0 0 8px">Open the Word file and type a field name in double braces wherever a member's answer should go, for example <code>{{municipality_name}}</code> or <code>{{pay_period}}</code>. Names use lowercase letters, numbers and underscores. Then upload the file here; Ranger adds a question for each new field, and you can write the question and help text.</p>
+            <ul style="margin:0;padding-left:18px">
+              <li><code>{{sick_wait_months | words}}</code> prints a number as words (3 → three). Use <code>| Words</code> for a capital letter, <code>| upper</code>, <code>| lower</code> or <code>| title</code> for case.</li>
+              <li><code>{{#offers_comp_time}}</code> … <code>{{/offers_comp_time}}</code> around paragraphs includes them only if the member answers Yes. <code>{{^offers_comp_time}}</code> … <code>{{/offers_comp_time}}</code> includes them only for No. Put these tags on their own lines.</li>
+              <li>Always available without a question: <code>{{program_type}}</code> (e.g. Youth camp or outdoor program), <code>{{today}}</code>, <code>{{year}}</code>.</li>
+              <li>Upload one file for every program type, or separate files per type (a recreational campground version of the emergency action plan, say). Members get the file for their type, or the every-type file if there isn't one.</li>
+              <li>Unanswered questions print as a blank line (________) so the document can be finished by hand.</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+      <div id="tpl-edit-view" hidden></div>
+    </section>
+
+    <!-- Settings -->
+    <section data-section="settings" hidden>
+      <div class="page-head"><div><h1>Settings</h1><p>Changes take effect within a minute. No redeploy needed.</p></div><button class="btn primary" id="set-save">Save settings</button></div>
+      <div class="grid g2">
+        <div class="card">
+          <h2>Welcome screen</h2>
+          <div class="field" style="margin-top:10px"><label for="set-welcome">Intro text under "Hi, I'm Ranger"</label><textarea id="set-welcome" rows="3"></textarea></div>
+          <div class="label-s" style="margin-top:14px">Starter questions <span class="hint">(up to 6)</span></div>
+          <div id="set-starters" class="grid" style="gap:8px;margin-top:8px"></div>
+          <button class="btn sm" id="set-add-starter" style="margin-top:8px">Add a starter</button>
+        </div>
+        <div class="grid" style="gap:16px">
+          <div class="card">
+            <h2>Contact &amp; disclaimer</h2>
+            <div class="field" style="margin-top:10px"><label for="set-disclaimer">Disclaimer under the message box</label><textarea id="set-disclaimer" rows="3"></textarea></div>
+            <div class="field" style="margin-top:10px"><label for="set-phone">OMAG phone shown in "Talk to OMAG"</label><input class="input" id="set-phone"></div>
+          </div>
+          <div class="card">
+            <h2>Model &amp; limits</h2>
+            <div class="field" style="margin-top:10px"><label for="set-model">AI model</label><select class="select" id="set-model"></select><input class="input" id="set-model-other" placeholder="Bedrock model ID, e.g. us.openai.gpt-5.6-sol" style="margin-top:6px" hidden><span class="hint">Run a few questions in the Instructions preview, or <strong>Answer checks</strong>, after switching.</span></div>
+            <div class="field" style="margin-top:10px"><label for="set-fallback">Backup model</label><select class="select" id="set-fallback"></select><span class="hint">Used automatically for an answer if the main model is busy or unavailable. Alarm emails tell you when it happens often.</span></div>
+            <div class="grid g2" style="margin-top:10px;gap:10px">
+              <div class="field"><label for="set-ip">Questions per person per day</label><input class="input" id="set-ip" type="number" min="0"></div>
+              <div class="field"><label for="set-global">Questions per day, everyone</label><input class="input" id="set-global" type="number" min="0"></div>
+            </div>
+            <p class="hint" style="margin:8px 0 0">The daily total is your spending ceiling. Set it to 0 to pause Ranger for everyone.</p>
+            <div class="grid g2" style="margin-top:12px;gap:10px">
+              <div class="field"><label for="set-pin">Input price ($ per 1M tokens)</label><input class="input" id="set-pin" type="number" min="0" step="0.01"></div>
+              <div class="field"><label for="set-pout">Output price ($ per 1M tokens)</label><input class="input" id="set-pout" type="number" min="0" step="0.01"></div>
+            </div>
+            <p class="hint" style="margin:8px 0 0">Used only for the cost estimate on the Analytics page. Copy them from the Amazon Bedrock pricing page for your model. Leave 0 to show token counts instead. Your AWS bill is the real number.</p>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <h2>Who gets Ranger's emails</h2>
+        <p class="sub">Changes here take effect right away; you don't need to click <strong>Save settings</strong>. New addresses get a confirmation email from AWS ("AWS Notification - Subscription Confirmation"). Nothing is sent to them until they click its link (check Junk); unconfirmed addresses drop off after 3 days.</p>
+        <div class="grid g2" style="gap:24px;margin-top:6px">
+          <div data-list="messages">
+            <h3 class="label-s" style="font-size:14px;margin:0">"Talk to OMAG" messages</h3>
+            <p class="hint" style="margin:4px 0 8px">Notes members send with <strong>Talk to OMAG</strong>, with their conversation. Until someone here confirms, notes go to the alerts list instead.</p>
+            <div class="rcp-list"></div>
+            <form class="row rcp-form" style="margin-top:10px;flex-wrap:nowrap"><label class="sr-only" for="rcp-messages">Email address</label><input class="input" id="rcp-messages" type="email" placeholder="name@omag.org"><button class="btn" type="submit">Add</button></form>
+          </div>
+          <div data-list="alerts">
+            <h3 class="label-s" style="font-size:14px;margin:0">Alerts</h3>
+            <p class="hint" style="margin:4px 0 8px">Alarm emails (for example, Ranger is down) and failed library rebuilds or answer checks. Keep at least one confirmed address.</p>
+            <div class="rcp-list"></div>
+            <form class="row rcp-form" style="margin-top:10px;flex-wrap:nowrap"><label class="sr-only" for="rcp-alerts">Email address</label><input class="input" id="rcp-alerts" type="email" placeholder="name@omag.org"><button class="btn" type="submit">Add</button></form>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="row" style="justify-content:space-between"><h2>Privacy notice</h2><button class="btn sm" type="button" id="set-privacy-default">Use the default text</button></div>
+        <div class="field" style="max-width:340px;margin:4px 0 12px"><label for="set-retention-days">Keep conversations for (days)</label><input class="input" id="set-retention-days" type="number" min="30" max="3650"><span class="hint">Currently <span id="set-retention"></span>. Applies to conversations, feedback and messages saved from now on; older ones keep the time they were saved with.</span></div>
+        <p class="sub">Members open it from the <strong>Privacy</strong> link under the message box. <code>{retention}</code> becomes how long conversations are kept and <code>{phone}</code> the OMAG phone above. Headings start with <code>## </code>, list items with <code>- </code>. Have OMAG Legal review it.</p>
+        <label for="set-privacy" class="sr-only">Privacy notice</label>
+        <textarea id="set-privacy" class="code" style="min-height:360px"></textarea>
+      </div>
+    </section>
+
+    <!-- Library -->
+    <section data-section="library" hidden>
+      <div class="page-head"><div><h1>Statute library</h1><p>The Oklahoma statutes (and any federal regulations) Ranger searches. Ranger rebuilds it from the official sources below on the 3rd of each month, and whenever you click <strong>Rebuild now</strong>.</p></div><button class="btn primary" id="lib-rebuild">Rebuild now</button></div>
+      <div class="grid g4" id="lib-stats"></div>
+      <div class="card" style="margin-top:16px" id="build-card">
+        <div class="row" style="justify-content:space-between"><h2>Last rebuild</h2><span id="build-pill"></span></div>
+        <p class="sub" id="build-msg" style="margin-bottom:0"></p>
+        <details id="build-log-wrap" style="margin-top:10px" hidden><summary>What happened, step by step</summary><pre class="mono log" id="build-log"></pre></details>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="row" style="justify-content:space-between;align-items:flex-start">
+          <div><h2>Where the library comes from</h2><p class="sub" style="margin-bottom:0" id="src-sub">Every address Ranger's statute library is built from, and how many sections each one gives Ranger today.</p></div>
+          <div class="row"><button class="btn" id="src-check">Check links</button><button class="btn" id="src-edit">Edit sources</button></div>
+        </div>
+        <div id="src-missing"></div>
+        <div id="src-table" style="margin-top:12px"></div>
+        <div id="src-editor" hidden style="margin-top:12px">
+          <div class="locked" style="margin-top:0">
+            <strong>How this works.</strong> Each Oklahoma title is one PDF from the Legislature. <em>Sections to keep</em> are patterns matched against section numbers, separated by spaces: <code>^63-683\.</code> keeps every section of Title 11, Article 8; <code>^25-307$</code> keeps just 25 O.S. 307. Federal parts only need the CFR title and part (for example 29 and 825). <em>Required sections</em> must appear in every rebuild, or the rebuild stops and Ranger keeps the library it has. After saving, click <strong>Rebuild now</strong>.
+          </div>
+          <h3 class="label-s" style="margin:16px 0 8px">Oklahoma Statutes</h3>
+          <div id="ed-ok" class="grid" style="gap:10px"></div>
+          <button class="btn sm" id="ed-add-ok" style="margin-top:8px">Add an Oklahoma title</button>
+          <h3 class="label-s" style="margin:18px 0 8px">Federal regulations (eCFR)</h3>
+          <div id="ed-fed" class="grid" style="gap:10px"></div>
+          <button class="btn sm" id="ed-add-fed" style="margin-top:8px">Add a federal part</button>
+          <div class="field" style="margin-top:18px"><label for="ed-required">Required sections <span class="hint">(separated by spaces or new lines)</span></label><textarea id="ed-required" rows="5" class="mono"></textarea></div>
+          <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" id="ed-cancel">Cancel</button><button class="btn primary" id="ed-save">Save sources</button></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <h2>Search the library</h2>
+        <p class="sub">See what Ranger finds for a set of words, the same way it searches when answering.</p>
+        <form class="row" id="lib-search-form" style="flex-wrap:nowrap">
+          <label for="lib-q" class="sr-only">Search</label>
+          <input class="input" id="lib-q" placeholder="e.g. hazard assessment review">
+          <label for="lib-j" class="sr-only">Source</label>
+          <select class="select" id="lib-j" style="width:auto"><option value="">Everything</option><option value="OK">Oklahoma statutes</option><option value="US">Federal regulations</option><option value="OMAG">OMAG documents &amp; websites</option></select>
+          <button class="btn primary" type="submit">Search</button>
+        </form>
+        <div id="lib-results" style="margin-top:12px"></div>
+      </div>
+    </section>
+    <!-- Answer checks -->
+    <section data-section="checks" hidden>
+      <div class="page-head"><div><h1>Answer checks</h1><p>Test questions with the laws a good answer should cite. Ranger asks them every Monday morning and emails everyone under <strong>Settings → Who gets Ranger's emails</strong> if fewer than <span id="chk-pass">80%</span> pass. Run them yourself after changing the instructions, the model or the library.</p></div><button class="btn primary" id="chk-run">Run checks now</button></div>
+      <div class="card" id="chk-job-card"><div class="row" style="justify-content:space-between"><h2>Latest run</h2><span id="chk-pill"></span></div><p class="sub" id="chk-msg" style="margin-bottom:0"></p></div>
+      <div class="card" style="margin-top:16px"><h2>Past runs</h2><p class="sub">Click a run to see every question, what Ranger cited, and its answer.</p><div id="chk-runs"></div></div>
+      <div class="card" style="margin-top:16px">
+        <div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>Questions</h2><p class="sub" style="margin-bottom:0"><em>Should cite</em>: section ids from Ranger's citations, separated by commas; write <code>29-CFR-553.230 or 29-CFR-553.224</code> when either will do. <em>Must mention</em> and <em>Must not say</em>: words or patterns, one per line (not case-sensitive).</p></div><button class="btn primary" id="chk-save">Save questions</button></div>
+        <details id="chk-q-wrap" style="margin-top:12px"><summary id="chk-q-sum">Questions</summary>
+          <div id="chk-questions" class="grid" style="gap:10px;margin-top:12px"></div>
+          <button class="btn sm" id="chk-add" style="margin-top:10px">Add a question</button>
+        </details>
+      </div>
+    </section>
+    <!-- Admins -->
+    <section data-section="admins" hidden>
+      <div class="page-head"><div><h1>Admins</h1><p>People who can sign in here. Every admin can see and change everything: conversations, messages, instructions, documents and settings.</p></div></div>
+      <div class="split">
+        <div class="card" style="padding:6px 6px 0"><div id="adm-table"></div></div>
+        <div class="grid" style="gap:16px">
+          <div class="card" id="mfa-card">
+            <h2>Your sign-in</h2>
+            <p class="sub" id="mfa-status">Checking…</p>
+            <div id="mfa-setup" hidden>
+              <p class="hint" style="margin:0">1. Install an authenticator app on your phone (Microsoft Authenticator, Google Authenticator or Authy).<br>2. In the app, add an account and scan this code.<br>3. Type the 6-digit code the app shows.</p>
+              <div class="mfa-qr" id="mfa-qr"></div>
+              <div class="field"><label for="mfa-code">6-digit code</label><input class="input" id="mfa-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></div>
+              <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" type="button" id="mfa-cancel">Cancel</button><button class="btn primary" type="button" id="mfa-verify">Turn on</button></div>
+            </div>
+            <div class="row" style="justify-content:flex-end;margin-top:4px" id="mfa-actions"></div>
+          </div>
+          <form class="card" id="adm-form">
+            <h2>Invite an admin</h2>
+            <p class="sub">They get an email from <span class="mono">no-reply@verificationemail.com</span> with a temporary password, good for 7 days. Tell them to check Junk.</p>
+            <div class="field"><label for="adm-email">Email</label><input class="input" id="adm-email" type="email" autocomplete="off" placeholder="name@omag.org" required></div>
+            <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn primary" type="submit" id="adm-invite">Send invite</button></div>
+          </form>
+          <div class="card hint" style="font-size:13.5px;line-height:1.6">
+            <h2 style="color:var(--ink)">What the buttons do</h2>
+            <p style="margin:6px 0"><strong>Resend invite</strong>: for someone who hasn't signed in yet, or whose 7 days ran out. Sends a new temporary password.</p>
+            <p style="margin:6px 0"><strong>Reset password</strong>: for someone who's locked out. Emails them a code; they use "Forgot password?" on the sign-in page.</p>
+            <p style="margin:6px 0"><strong>Turn off</strong>: they can't sign in, and are signed out within a minute. Reversible.</p>
+            <p style="margin:6px 0"><strong>Remove</strong>: deletes their account. To add them back, invite them again.</p>
+            <p style="margin:6px 0"><strong>Reset two-step</strong>: for someone who lost or replaced their phone. At their next sign-in they set it up again with the new phone (or, if two-step isn't required, sign in with just their password).</p>
+            <p style="margin:6px 0">You can't turn off or remove yourself.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="overlay"></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="../config.js"></script>
+<script>
+(function () {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+const API = LOCAL ? location.origin + '/api' : String((window.RANGER_CONFIG || {}).apiUrl || '').replace(/\/$/, '');
+const PUBLIC_API = LOCAL ? location.origin : API;
+const FORM_LABEL = { camp: 'Youth camp or outdoor program', facility: 'Camp facility', campground: 'Recreational campground', unsure: 'Not sure yet / several' };
+const ICON = (dark) => `<svg viewBox="0 0 64 64" width="100%" height="100%" aria-hidden="true">${dark ? '' : '<rect width="64" height="64" rx="15" fill="#16324f"/>'}<path d="M14 12h36a6 6 0 0 1 6 6v22a6 6 0 0 1-6 6H28l-10 9v-9h-4a6 6 0 0 1-6-6V18a6 6 0 0 1 6-6z" fill="#fff"/><path d="M32 19.5 43.5 38h-23z" fill="#d4a72c"/><path d="M32 28.5 36 38h-8z" fill="#16324f"/></svg>`;
+const fmtDate = (iso) => iso ? new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
+const fmtDay = (iso) => iso ? new Date(iso + (iso.length === 10 ? 'T12:00:00' : '')).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => (t.hidden = true), 3500); }
+
+/* ================= AUTH (Cognito, no SDK) ================= */
+let AUTH = null;
+const tok = {
+  get id() { return sessionStorage.getItem('ranger.admin.id'); },
+  get refresh() { return sessionStorage.getItem('ranger.admin.refresh'); },
+  get email() { return sessionStorage.getItem('ranger.admin.email'); },
+  get access() { return sessionStorage.getItem('ranger.admin.access'); },
+  set(r, email) {
+    if (r.IdToken) sessionStorage.setItem('ranger.admin.id', r.IdToken);
+    if (r.AccessToken) sessionStorage.setItem('ranger.admin.access', r.AccessToken);
+    if (r.RefreshToken) sessionStorage.setItem('ranger.admin.refresh', r.RefreshToken);
+    if (email) sessionStorage.setItem('ranger.admin.email', email);
+  },
+  clear() { ['id', 'refresh', 'email', 'access'].forEach((k) => sessionStorage.removeItem('ranger.admin.' + k)); }
+};
+async function cognito(target, body) {
+  const r = await fetch(`https://cognito-idp.${AUTH.region}.amazonaws.com/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-amz-json-1.1', 'X-Amz-Target': 'AWSCognitoIdentityProviderService.' + target },
+    body: JSON.stringify(body)
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    const type = String(j.__type || '').split('#').pop();
+    const msg = {
+      NotAuthorizedException: 'Incorrect email or password.',
+      UserNotFoundException: 'Incorrect email or password.',
+      InvalidPasswordException: 'That password doesn’t meet the rules: at least 12 characters with upper- and lowercase letters and a number.',
+      CodeMismatchException: 'That code isn’t right.',
+      ExpiredCodeException: 'That code expired. Click "Forgot password?" again.',
+      LimitExceededException: 'Too many attempts. Wait a few minutes and try again.',
+      PasswordResetRequiredException: 'You need to reset your password. Click "Forgot password?".',
+      EnableSoftwareTokenMFAException: 'That code isn’t right. Check the time on your phone is set automatically, and try the newest code.'
+    }[type] || j.message || 'Sign-in failed.';
+    if (type === 'NotAuthorizedException' && /disabled/i.test(j.message || '')) throw Object.assign(new Error('Your admin access is turned off. Ask another admin if you need it back.'), { type });
+    throw Object.assign(new Error(msg), { type });
+  }
+  return j;
+}
+async function refreshToken() {
+  if (!tok.refresh) return false;
+  try {
+    const r = await cognito('InitiateAuth', { AuthFlow: 'REFRESH_TOKEN_AUTH', ClientId: AUTH.clientId, AuthParameters: { REFRESH_TOKEN: tok.refresh } });
+    tok.set(r.AuthenticationResult); return true;
+  } catch { return false; }
+}
+
+let loginState = { step: 'pw', session: null, email: '' };
+function showLogin(msg) {
+  $('#app').hidden = true; $('#login').hidden = false;
+  $('#login-icon').innerHTML = ICON();
+  setLoginStep('pw');
+  $('#login-err').textContent = msg || '';
+  $('#li-email').focus();
+}
+function setLoginStep(step) {
+  loginState.step = step;
+  $('#login-step-pw').hidden = step !== 'pw';
+  $('#login-step-new').hidden = step !== 'new';
+  $('#login-step-reset').hidden = step !== 'reset';
+  $('#login-step-mfa').hidden = step !== 'mfa';
+  $('#login-step-mfasetup').hidden = step !== 'mfasetup';
+  $('#forgot-btn').hidden = step !== 'pw';
+  $('#login-btn').textContent = { pw: 'Sign in', new: 'Set password and sign in', reset: 'Reset password', mfa: 'Verify', mfasetup: 'Turn on and sign in' }[step];
+  $('#li-pw').required = step === 'pw';
+}
+/** Follows Cognito's next step. Returns true once fully signed in. */
+async function signedIn(r) {
+  if (r.AuthenticationResult) { tok.set(r.AuthenticationResult, loginState.email); return true; }
+  loginState.session = r.Session;
+  if (r.ChallengeName === 'NEW_PASSWORD_REQUIRED') { setLoginStep('new'); $('#li-new').focus(); return false; }
+  if (r.ChallengeName === 'SOFTWARE_TOKEN_MFA') { setLoginStep('mfa'); $('#li-mfa').focus(); return false; }
+  if (r.ChallengeName === 'MFA_SETUP') {
+    const a = await cognito('AssociateSoftwareToken', { Session: r.Session });
+    loginState.session = a.Session;
+    await showQr($('#li-qr'), a.SecretCode, loginState.email);
+    setLoginStep('mfasetup'); $('#li-setup-code').focus(); return false;
+  }
+  throw new Error('Unexpected sign-in step: ' + r.ChallengeName);
+}
+let qrLib = null;
+function loadQr() {
+  if (window.qrcode) return Promise.resolve(window.qrcode);
+  return qrLib ||= new Promise((res, rej) => {
+    const sc = document.createElement('script');
+    sc.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js';
+    sc.integrity = 'sha384-8FWZA6BGMXhsfO+BLtrJK0We6gg5o1JyO8xQm6peWDEUs17ACA5ziE/NIAkl9z2k';
+    sc.crossOrigin = 'anonymous';
+    sc.onload = () => res(window.qrcode); sc.onerror = () => { qrLib = null; rej(new Error('QR code unavailable')); };
+    document.head.appendChild(sc);
+  });
+}
+/** Draws the authenticator QR code, with the key as text for typing in by hand. */
+async function showQr(el, secret, email) {
+  const uri = `otpauth://totp/${encodeURIComponent('OMAG Ranger admin:' + email)}?secret=${secret}&issuer=${encodeURIComponent('OMAG Ranger admin')}`;
+  const key = secret.replace(/(.{4})/g, '$1 ').trim();
+  let svg = '';
+  try { const q = (await loadQr())(0, 'M'); q.addData(uri); q.make(); svg = q.createSvgTag(4, 8); } catch { /* text key still works */ }
+  el.innerHTML = `${svg}<div class="hint">Can't scan? Choose "enter a setup key" in the app and type:</div><div class="mono">${esc(key)}</div>`;
+}
+$('#login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = $('#login-btn'); btn.disabled = true; $('#login-err').textContent = '';
+  try {
+    if (loginState.step === 'pw') {
+      loginState.email = $('#li-email').value.trim().toLowerCase();
+      const r = await cognito('InitiateAuth', { AuthFlow: 'USER_PASSWORD_AUTH', ClientId: AUTH.clientId, AuthParameters: { USERNAME: loginState.email, PASSWORD: $('#li-pw').value.trim() } });
+      if (!(await signedIn(r))) return;
+    } else if (loginState.step === 'new') {
+      const r = await cognito('RespondToAuthChallenge', { ChallengeName: 'NEW_PASSWORD_REQUIRED', ClientId: AUTH.clientId, Session: loginState.session, ChallengeResponses: { USERNAME: loginState.email, NEW_PASSWORD: $('#li-new').value.trim() } });
+      if (!(await signedIn(r))) return;
+    } else if (loginState.step === 'mfa') {
+      const r = await cognito('RespondToAuthChallenge', { ChallengeName: 'SOFTWARE_TOKEN_MFA', ClientId: AUTH.clientId, Session: loginState.session, ChallengeResponses: { USERNAME: loginState.email, SOFTWARE_TOKEN_MFA_CODE: $('#li-mfa').value.trim() } });
+      if (!(await signedIn(r))) return;
+    } else if (loginState.step === 'mfasetup') {
+      const v = await cognito('VerifySoftwareToken', { Session: loginState.session, UserCode: $('#li-setup-code').value.trim(), FriendlyDeviceName: 'Ranger admin' });
+      const r = await cognito('RespondToAuthChallenge', { ChallengeName: 'MFA_SETUP', ClientId: AUTH.clientId, Session: v.Session, ChallengeResponses: { USERNAME: loginState.email } });
+      if (!(await signedIn(r))) return;
+    } else {
+      await cognito('ConfirmForgotPassword', { ClientId: AUTH.clientId, Username: loginState.email, ConfirmationCode: $('#li-code').value.trim(), Password: $('#li-reset-pw').value.trim() });
+      setLoginStep('pw'); $('#li-pw').value = ''; $('#login-err').textContent = ''; toast('Password reset. Sign in with your new password.'); return;
+    }
+    ['#li-pw', '#li-new', '#li-mfa', '#li-setup-code'].forEach((s) => ($(s).value = ''));
+    startApp();
+  } catch (err) {
+    $('#login-err').textContent = err.message;
+  } finally { btn.disabled = false; }
+});
+$('#forgot-btn').addEventListener('click', async () => {
+  const email = $('#li-email').value.trim().toLowerCase();
+  if (!email) { $('#login-err').textContent = 'Enter your email first.'; $('#li-email').focus(); return; }
+  try {
+    await cognito('ForgotPassword', { ClientId: AUTH.clientId, Username: email });
+    loginState.email = email; setLoginStep('reset'); $('#li-code').focus();
+  } catch (err) { $('#login-err').textContent = err.message; }
+});
+$('#signout').addEventListener('click', () => { tok.clear(); location.reload(); });
+
+/* ================= API ================= */
+async function api(method, path, body, retry = true) {
+  const headers = { 'content-type': 'application/json' };
+  if (tok.id) headers.authorization = 'Bearer ' + tok.id;
+  const r = await fetch(API + path, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  if (r.status === 401 && !AUTH.local) {
+    if (retry && (await refreshToken())) return api(method, path, body, false);
+    const j = await r.json().catch(() => ({}));
+    tok.clear(); showLogin(/turned off/.test(j.error || '') ? j.error : 'Your session ended. Please sign in again.'); throw new Error('signed out');
+  }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || `Request failed (${r.status})`);
+  return j;
+}
+const fail = (e) => { if (e.message !== 'signed out') toast(e.message); };
+
+/* ================= DIALOGS (in place of the browser's confirm/prompt pop-ups) ================= */
+const VERB_LABEL = /^(Delete|Remove|Discard|Publish|Replace|Import|Rebuild|Send|Stop|Turn off|Email|Leave|Invite|Ask all|Reset|Use|Clear)\b/i;
+const DANGER = /^(Delete|Remove|Discard|Stop|Turn off|Reset|Clear|Leave)\b/i;
+/** Shows a styled dialog. Resolves true/false (ask) or the text/null (askText). */
+function openDialog({ message, title = '', ok, cancel = 'Cancel', danger, input }) {
+  return new Promise((resolve) => {
+    const d = document.createElement('dialog');
+    d.className = 'ranger-dialog';
+    const verb = (message.match(VERB_LABEL) || [])[1];
+    const okLabel = ok || (verb ? verb.replace(/^Ask all$/i, 'Run checks').replace(/^\w/, (c) => c.toUpperCase()) : 'OK');
+    const isDanger = danger ?? DANGER.test(message);
+    d.innerHTML = `<form method="dialog">
+      ${title ? `<h2>${esc(title)}</h2>` : ''}
+      <p>${esc(message)}</p>
+      ${input ? `<input class="input" name="v" value="${esc(input.value || '')}" aria-label="${esc(input.label || message)}">` : ''}
+      <div class="ranger-dialog-actions"><button type="button" class="btn" value="cancel">${esc(cancel)}</button><button type="submit" class="btn ${isDanger ? 'danger-solid' : 'primary'}" value="ok">${esc(okLabel)}</button></div>
+    </form>`;
+    document.body.appendChild(d);
+    let result = input ? null : false;
+    const field = d.querySelector('input[name=v]');
+    d.querySelector('button[value=cancel]').addEventListener('click', () => d.close());
+    d.querySelector('form').addEventListener('submit', (e) => { e.preventDefault(); result = input ? field.value : true; d.close(); });
+    d.addEventListener('close', () => { d.remove(); resolve(result); });
+    d.showModal();
+    if (field) { field.focus(); field.select(); } else d.querySelector('button[value=ok]').focus();
+  });
+}
+const ask = (message, opts = {}) => openDialog({ message, ...opts });
+const askText = (message, value = '', opts = {}) => openDialog({ message, ok: 'Save', ...opts, input: { value } });
+
+/* ================= NAV ================= */
+const loaders = {};
+let current = 'analytics';
+function go(page) {
+  current = page;
+  $$('#nav button').forEach((b) => (b.getAttribute('aria-current') === 'page' ? b.removeAttribute('aria-current') : 0, b.dataset.page === page && b.setAttribute('aria-current', 'page')));
+  $$('[data-section]').forEach((s) => (s.hidden = s.dataset.section !== page));
+  history.replaceState(null, '', '#' + page);
+  loaders[page]?.().catch(fail);
+  $('#main').focus({ preventScroll: true });
+}
+$('#nav').addEventListener('click', (e) => { const b = e.target.closest('[data-page]'); if (b) go(b.dataset.page); });
+document.addEventListener('click', (e) => { const a = e.target.closest('[data-goto]'); if (a) { e.preventDefault(); go(a.dataset.goto); } });
+
+/* ================= OVERVIEW ================= */
+let anDays = 30;
+const num = (n) => (n ?? 0).toLocaleString();
+const secs = (ms) => (ms == null ? '—' : `${(ms / 1000).toFixed(ms < 10000 ? 1 : 0)}s`);
+const RANGE = { 7: 'last 7 days', 30: 'last 30 days', 90: 'last 90 days', 365: 'last 12 months' };
+function delta(cur, prev, { lowerIsBetter = false, unit = '' } = {}) {
+  if (cur == null || prev == null) return '';
+  if (!prev) return cur ? '<div class="delta">New this period</div>' : '';
+  const d = Math.round(((cur - prev) / prev) * 100);
+  if (!d) return '<div class="delta">Same as the previous period</div>';
+  return `<div class="delta"><b>${d > 0 ? '▲' : '▼'} ${Math.abs(d)}%</b> vs previous period${unit}</div>`;
+}
+const tile = (label, value, hint, extra = '') => `<div class="card stat"><div class="label">${label}</div><div class="value">${value}</div>${extra}<div class="hint">${hint}</div></div>`;
+function barList(rows, { empty = 'Nothing yet.', clickable = false } = {}) {
+  if (!rows.length) return `<p class="hint">${empty}</p>`;
+  const max = Math.max(...rows.map((r) => r.n));
+  return `<div class="blist">${rows.map((r) => `<div class="brow">
+      <span class="name" title="${esc(r.title || r.name)}">${clickable && r.id ? citeChip(r.id, r.name) : esc(r.name)}</span><span class="n">${num(r.n)}</span>
+      <span class="track" aria-hidden="true"><i style="width:${Math.max(2, (r.n / max) * 100)}%"></i></span></div>`).join('')}</div>`;
+}
+function columnChart(points, { cls = '', label, axis }) {
+  const max = Math.max(1, ...points.map((p) => p.n));
+  return `<div class="chart ${cls}" role="img" aria-label="${esc(label)}">${points.map((p) => `<div class="bar" tabindex="0"><i style="height:${(p.n / max) * 100}%"></i><span class="tip">${esc(p.tip)}</span></div>`).join('')}</div>${axis}`;
+}
+const hourLabel = (h) => (h === 0 ? '12am' : h < 12 ? `${h}am` : h === 12 ? '12pm' : `${h - 12}pm`);
+
+async function loadAnalytics() {
+  $$('#an-range button').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.days) === anDays)));
+  const [a, o] = await Promise.all([api('GET', `/admin/analytics?days=${anDays}`), api('GET', '/admin/overview')]);
+  const t = a.totals, p = a.previous;
+  $('#an-compare').textContent = `Showing the ${RANGE[a.days]}; changes are compared with the ${a.days === 365 ? '12 months' : a.days + ' days'} before that.`;
+
+  $('#an-kpi1').innerHTML = [
+    tile('Questions', num(t.questions), `${num(t.conversations)} conversation${t.conversations === 1 ? '' : 's'} · ${t.perConversation ?? '—'} per conversation`, delta(t.questions, p.questions)),
+    tile('People', num(t.people), 'Different browsers that asked. Approximate: no accounts', delta(t.people, p.people)),
+    tile('Helpful', t.helpfulPct == null ? '—' : `${t.helpfulPct}%`, t.rated ? `${num(t.up)} 👍 · ${num(t.down)} 👎 · ${t.ratedPct}% of answers rated` : 'No ratings yet'),
+    tile('Response time', secs(t.latencyMedianMs), t.latencyP90Ms ? `Typical answer. 9 in 10 finish within ${secs(t.latencyP90Ms)}` : 'Typical answer')
+  ].join('');
+  const costTile = t.estimatedCost != null
+    ? tile('Estimated cost', `$${t.estimatedCost.toFixed(2)}`, t.questions ? `About $${(t.estimatedCost / t.questions).toFixed(3)} per question` : 'From token use × your prices', delta(t.estimatedCost, p.estimatedCost))
+    : tile('Tokens used', `${(((t.inputTokens || 0) + (t.outputTokens || 0)) / 1e6).toFixed(2)}M`, `${num(t.inputTokens)} in · ${num(t.outputTokens)} out. <a href="#settings" data-goto="settings">Add prices</a> for a cost estimate`);
+  $('#an-kpi2').innerHTML = [
+    costTile,
+    tile('Talk to OMAG', num(t.contacts), t.contacts ? '<a href="#messages" data-goto="messages">Read the messages</a>' : 'Members who asked for OMAG staff'),
+    tile('Answers citing law', t.citedPct == null ? '—' : `${t.citedPct}%`, t.removedCitations ? `${num(t.removedCitations)} had an unverified citation removed` : 'Every citation was verified'),
+    tile('Errors', num(t.errors), t.errors ? `${t.errorPct}% of questions. See CloudWatch logs` : 'None')
+  ].join('');
+
+  const weekly = a.bucket === 'week';
+  $('#an-series-title').textContent = weekly ? 'Questions per week' : 'Questions per day';
+  const peak = Math.max(0, ...a.series.map((x) => x.n));
+  $('#an-series-sub').textContent = `${RANGE[a.days][0].toUpperCase()}${RANGE[a.days].slice(1)} · peak ${peak} per ${weekly ? 'week' : 'day'}`;
+  $('#an-series').innerHTML = columnChart(a.series.map((x) => ({ n: x.n, tip: `${weekly ? 'Week of ' : ''}${fmtDay(x.label)}: ${x.n} question${x.n === 1 ? '' : 's'}` })), {
+    label: `Questions per ${weekly ? 'week' : 'day'}, ${RANGE[a.days]}: ${t.questions} total, peak ${peak}`,
+    axis: `<div class="axis"><span>${fmtDay(a.series[0]?.label)}</span><span>${fmtDay(a.series.at(-1)?.label)}</span></div>`
+  }) + `<details style="margin-top:8px"><summary class="hint" style="font-weight:500">Show as table</summary><table style="margin-top:6px"><thead><tr><th>${weekly ? 'Week of' : 'Day'}</th><th>Questions</th></tr></thead><tbody>${a.series.filter((x) => x.n).map((x) => `<tr><td>${fmtDay(x.label)}</td><td>${x.n}</td></tr>`).join('') || '<tr><td colspan="2" class="hint">No questions yet</td></tr>'}</tbody></table></details>`;
+
+  $('#an-topics').innerHTML = barList(a.topics.map((x) => ({ name: x.name, n: x.n })), { empty: 'No questions yet.' });
+  $('#an-sections').innerHTML = barList(a.sections.map((x) => ({ id: x.id, name: x.cite, n: x.n })), { empty: 'No citations yet.', clickable: true });
+  $('#an-hours').innerHTML = columnChart(a.byHour.map((n, h) => ({ n, tip: `${hourLabel(h)}–${hourLabel((h + 1) % 24)}: ${n}` })), {
+    cls: 'small', label: 'Questions by hour of the day',
+    axis: '<div class="axis"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>11pm</span></div>'
+  });
+  $('#an-weekdays').innerHTML = barList(Object.entries(a.byWeekday).map(([name, n]) => ({ name: { Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday', Sun: 'Sunday' }[name], n })).filter((x) => x.n), { empty: 'No questions yet.' });
+  $('#an-forms').innerHTML = barList(Object.entries(a.forms).sort((x, y) => y[1] - x[1]).map(([k, n]) => ({ name: FORM_LABEL[k] || 'Not selected', n })), { empty: 'No questions yet.' });
+  $('#an-cities-sub').textContent = a.citiesTotal > a.cities.length ? `Top municipalities, of ${a.citiesTotal} named (as typed by members)` : 'Municipalities (as typed by members)';
+  $('#an-cities').innerHTML = barList(a.cities.map((x) => ({ name: x.name, n: x.n })), { empty: 'No member has named their municipality yet.' });
+  $('#an-docs-sub').textContent = `${num(t.documents)} built in the ${RANGE[a.days]}${p.documents != null && (t.documents || p.documents) ? (p.documents ? ` (${t.documents >= p.documents ? '▲' : '▼'} ${Math.abs(Math.round(((t.documents - p.documents) / p.documents) * 100))}% vs previous)` : ' (new this period)') : ''}`;
+  $('#an-docs').innerHTML = barList(a.documents.map((x) => ({ name: x.name, n: x.n })), { empty: 'No documents built yet.' });
+  $('#an-feedback').innerHTML = a.feedback.length ? a.feedback.map((f) => `<div class="fb"><div><div class="trunc">${esc(f.question)}</div>${f.note ? `<div class="hint">“${esc(f.note)}”</div>` : ''}<div class="hint">${fmtDate(f.at)}${f.city ? ' · ' + esc(f.city) : ''}</div></div><button class="btn sm" data-conv="${esc(f.conversationId)}">Open</button></div>`).join('') : '<p class="hint">No 👎 answers in this period.</p>';
+
+  const lib = o.library;
+  $('#ov-setup').innerHTML = `
+    <div><strong>Model:</strong> ${esc(o.model)}</div>
+    <div><strong>Instructions:</strong> ${o.guidance.default ? 'original default' : `published ${fmtDate(o.guidance.publishedAt)} by ${esc(o.guidance.publishedBy)}`}</div>
+    <div><strong>Statute library:</strong> ${lib.statuteSections.toLocaleString()} sections, built ${fmtDay(String(lib.builtAt).slice(0, 10))}</div>
+    <div><strong>OMAG documents:</strong> ${o.docs.enabled} on${o.docs.total > o.docs.enabled ? `, ${o.docs.total - o.docs.enabled} off` : ''} (${lib.omagSections} sections)</div>`;
+}
+loaders.analytics = loadAnalytics;
+$('#an-range').addEventListener('click', (e) => { const b = e.target.closest('[data-days]'); if (!b) return; anDays = Number(b.dataset.days); loadAnalytics().catch(fail); });
+$('#an-feedback').addEventListener('click', (e) => { const b = e.target.closest('[data-conv]'); if (b) openConversation(b.dataset.conv); });
+document.addEventListener('click', (e) => { const g = e.target.closest('[data-goto]'); if (g) { e.preventDefault(); go(g.dataset.goto); } });
+$('#an-csv').addEventListener('click', async (e) => {
+  const btn = e.currentTarget; btn.disabled = true;
+  try {
+    const { turns: rows } = await api('GET', `/admin/analytics/export?days=${anDays}`);
+    const cols = [['at', 'When (UTC)'], ['conversationId', 'Conversation'], ['city', 'Municipality'], ['form', 'Program type'], ['question', 'Question'], ['answer', 'Answer'], ['citations', 'Citations'], ['rating', 'Rating'], ['ratingNote', 'Rating note'], ['latencyMs', 'Response time (ms)'], ['inputTokens', 'Input tokens'], ['outputTokens', 'Output tokens'], ['model', 'Model'], ['unread', 'Removed citations'], ['error', 'Error']];
+    const cell = (v) => { v = Array.isArray(v) ? v.join('; ') : v ?? ''; v = String(v); if (/^[=+\-@]/.test(v)) v = "'" + v; return /[",\n\r]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v; };
+    const csv = '﻿' + [cols.map((c) => c[1]).join(','), ...rows.map((r) => cols.map(([k]) => cell(k === 'form' ? FORM_LABEL[r.form] || r.form : r[k])).join(','))].join('\r\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = `ranger-questions-${new Date().toISOString().slice(0, 10)}-${RANGE[anDays].replace(/ /g, '-')}.csv`;
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    toast(`Downloaded ${rows.length} question${rows.length === 1 ? '' : 's'}.`);
+  } catch (err) { fail(err); } finally { btn.disabled = false; }
+});
+
+/* ================= INSTRUCTIONS ================= */
+let ins = null;
+let insDirty = false;
+function renderIns() {
+  const ta = $('#ins-text');
+  if (!insDirty) ta.value = ins.draft ? ins.draft.text : ins.live.text;
+  const state = insDirty ? ['Unsaved changes', 'warn'] : ins.draft ? (ins.draft.differs ? ['Draft saved, not published', 'warn'] : ['Draft matches live', 'muted']) : ['Same as live', 'ok'];
+  $('#ins-state').textContent = state[0]; $('#ins-state').className = 'pill ' + state[1];
+  $('#ins-live-meta').textContent = ins.live.isDefault ? 'Live: original default' : `Live since ${fmtDate(ins.live.publishedAt)} · ${ins.live.publishedBy || ''}`;
+  $('#ins-discard').disabled = !ins.draft && !insDirty;
+  $('#ins-publish').disabled = !ins.draft && !insDirty;
+  $('#ins-history').innerHTML = (ins.history.length ? `<table><tbody>${ins.history.map((h) => `<tr><td style="width:150px">${fmtDate(h.publishedAt)}</td><td>${esc(h.note || '—')}<div class="hint">${esc(h.publishedBy || '')}</div></td><td style="text-align:right"><button class="btn sm" data-restore="${esc(h.id)}">Load into draft</button></td></tr>`).join('')}</tbody></table>` : '<p class="hint">No published versions yet.</p>')
+    + `<div style="margin-top:10px"><button class="btn sm" data-restore="default">Load the original default into draft</button></div>`;
+}
+loaders.instructions = async () => { ins = await api('GET', '/admin/guidance'); renderIns(); };
+$('#ins-text').addEventListener('input', () => { insDirty = true; renderIns(); });
+$('#ins-save').addEventListener('click', async () => {
+  try { ins = await api('PUT', '/admin/guidance/draft', { text: $('#ins-text').value }); insDirty = false; renderIns(); toast('Draft saved.'); } catch (e) { fail(e); }
+});
+$('#ins-discard').addEventListener('click', async () => {
+  if (!await ask('Discard the draft and go back to the live instructions?')) return;
+  try { ins = await api('DELETE', '/admin/guidance/draft'); insDirty = false; renderIns(); toast('Draft discarded.'); } catch (e) { fail(e); }
+});
+$('#ins-publish').addEventListener('click', async () => {
+  if (!await ask('Publish these instructions? Members will get answers based on them within a minute.')) return;
+  try {
+    if (insDirty) { await api('PUT', '/admin/guidance/draft', { text: $('#ins-text').value }); insDirty = false; }
+    ins = await api('POST', '/admin/guidance/publish', { note: $('#ins-note').value.trim() });
+    $('#ins-note').value = ''; renderIns(); toast('Published. Ranger is using the new instructions.');
+  } catch (e) { fail(e); }
+});
+$('#ins-history').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-restore]'); if (!b) return;
+  if (insDirty && !await ask('Replace your unsaved changes?')) return;
+  try { ins = await api('POST', '/admin/guidance/restore', { id: b.dataset.restore }); insDirty = false; renderIns(); toast('Loaded into the draft. Review it, then publish.'); } catch (e) { fail(e); }
+});
+window.addEventListener('beforeunload', (e) => { if (insDirty) { e.preventDefault(); e.returnValue = ''; } });
+
+/* --- preview chat --- */
+let pv = { id: null, messages: [], busy: false };
+const newPvId = () => 'pv_' + Math.random().toString(36).slice(2, 12);
+function citeChip(id, label) { return `<button type="button" class="cite${id.startsWith('omag-') ? ' omag' : ''}" data-cite="${esc(id)}">${esc(label)}</button>`; }
+function md(src, cites) {
+  const inline = (s) => esc(s)
+    .replace(/\[\[([^\]\n]{1,40})\]\]/g, (_, id) => { id = id.trim(); if (cites && !cites.has(id)) return ''; return ' ' + citeChip(id, cites ? cites.get(id) : id); })
+    .replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+  const out = []; let list = null, para = [];
+  const fp = () => { if (para.length) { out.push(`<p>${inline(para.join(' '))}</p>`); para = []; } };
+  const fl = () => { if (list) { out.push(`<${list.t}>${list.i.map((x) => `<li>${inline(x)}</li>`).join('')}</${list.t}>`); list = null; } };
+  for (const raw of String(src).split('\n')) {
+    const l = raw.trim(); let m;
+    if (!l) { fp(); fl(); continue; }
+    if ((m = l.match(/^[-*•]\s+(.*)$/))) { fp(); if (!list || list.t !== 'ul') { fl(); list = { t: 'ul', i: [] }; } list.i.push(m[1]); continue; }
+    if ((m = l.match(/^\d{1,2}[.)]\s+(.*)$/))) { fp(); if (!list || list.t !== 'ol') { fl(); list = { t: 'ol', i: [] }; } list.i.push(m[1]); continue; }
+    if ((m = l.match(/^#{1,4}\s+(.*)$/))) { fp(); fl(); out.push(`<p><strong>${inline(m[1])}</strong></p>`); continue; }
+    fl(); para.push(l);
+  }
+  fp(); fl(); return out.join('');
+}
+async function streamChat(path, payload, onEvent) {
+  const headers = { 'content-type': 'application/json' };
+  if (tok.id) headers.authorization = 'Bearer ' + tok.id;
+  let r = await fetch(API + path, { method: 'POST', headers, body: JSON.stringify(payload) });
+  if (r.status === 401 && !AUTH.local && (await refreshToken())) { headers.authorization = 'Bearer ' + tok.id; r = await fetch(API + path, { method: 'POST', headers, body: JSON.stringify(payload) }); }
+  if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.error || `Request failed (${r.status})`); }
+  const reader = r.body.getReader(); const dec = new TextDecoder(); let buf = '';
+  for (;;) {
+    const { value, done } = await reader.read(); if (done) break;
+    buf += dec.decode(value, { stream: true }); let nl;
+    while ((nl = buf.indexOf('\n')) >= 0) { const line = buf.slice(0, nl).trim(); buf = buf.slice(nl + 1); if (line) onEvent(JSON.parse(line)); }
+  }
+}
+$('#pv-reset').addEventListener('click', () => { pv = { id: null, messages: [], busy: false }; $('#pv-chat').innerHTML = '<div class="empty">Ask a question to see how Ranger answers with these instructions.</div>'; });
+$('#pv-form-ask').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const q = $('#pv-q').value.trim(); if (!q || pv.busy) return;
+  pv.busy = true; $('#pv-send').disabled = true; $('#pv-q').value = '';
+  pv.id ||= newPvId();
+  if (!pv.messages.length) $('#pv-chat').innerHTML = '';
+  pv.messages.push({ role: 'user', text: q });
+  const chat = $('#pv-chat');
+  chat.insertAdjacentHTML('beforeend', `<div class="q">${esc(q)}</div><div class="a"><div class="status">Thinking…</div><div class="body"></div></div>`);
+  const a = chat.lastElementChild; const body = $('.body', a); const status = $('.status', a);
+  let acc = '';
+  try {
+    await streamChat('/admin/preview', { conversationId: pv.id, form: $('#pv-form').value, guidance: $('#ins-text').value, messages: pv.messages }, (ev) => {
+      if (ev.type === 'status') status.textContent = ev.text + '…';
+      if (ev.type === 'text') { acc += ev.text; body.innerHTML = md(acc, null); chat.scrollTop = chat.scrollHeight; }
+      if (ev.type === 'reset') { acc = ''; body.innerHTML = ''; }
+      if (ev.type === 'error') throw new Error(ev.message);
+      if (ev.type === 'done') {
+        status.remove();
+        const cites = new Map(); (ev.citations || []).forEach((c) => { cites.set(c.marker || c.id, c.cite); cites.set(c.id, c.cite); });
+        body.innerHTML = md(acc, cites);
+        $$('.cite', body).forEach((b) => { const c = (ev.citations || []).find((x) => x.marker === b.dataset.cite || x.id === b.dataset.cite); if (c) b.dataset.cite = c.id; });
+        if (ev.unread?.length) body.insertAdjacentHTML('beforeend', `<p class="hint">Removed ${ev.unread.length} unverified reference${ev.unread.length > 1 ? 's' : ''}: ${esc(ev.unread.join(', '))}</p>`);
+        pv.messages.push({ role: 'assistant', text: acc });
+      }
+    });
+  } catch (err) {
+    status.remove(); body.innerHTML = `<p class="err">${esc(err.message)}</p>`; pv.messages.pop();
+  } finally { pv.busy = false; $('#pv-send').disabled = false; chat.scrollTop = chat.scrollHeight; $('#pv-q').focus(); }
+});
+
+/* ================= DOCUMENTS ================= */
+let docs = [];
+const host = (u) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return u; } };
+function docMeta(d) {
+  if (d.kind === 'web') {
+    const u = d.finalUrl || d.url;
+    return `<a class="url" href="${esc(u)}" target="_blank" rel="noopener" title="${esc(u)}">${esc(u.replace(/^https?:\/\/(www\.)?/, ''))}</a>
+      <div class="hint">Web page · ${d.lastCheckedAt ? `checked ${fmtDate(d.lastCheckedAt)}` : 'not checked yet'}${d.changedAt ? ` · last changed ${fmtDate(d.changedAt)}` : ''}</div>
+      ${d.lastError ? `<div class="warnbox">The last check failed: ${esc(d.lastError)} Ranger is still using the copy from ${fmtDate(d.changedAt)}.</div>` : ''}`;
+  }
+  return `<div class="hint">${d.publisher && d.publisher !== 'OMAG' ? `Published by <strong>${esc(d.publisher)}</strong> · ` : ''}${esc(d.filename)} · ${(d.size / 1024).toFixed(0)} KB · ${fmtDate(d.uploadedAt)}</div>`;
+}
+function renderDocs() {
+  if (!docs.length) { $('#docs-table').innerHTML = '<div class="empty">Nothing yet. Upload an OMAG document or add a web page above, and Ranger will start citing it.</div>'; return; }
+  $('#docs-table').innerHTML = `<table><thead><tr><th>Document or page</th><th>Status</th><th>Sections</th><th>Used by Ranger</th><th></th></tr></thead><tbody>${docs.map((d) => `
+    <tr>
+      <td><strong>${esc(d.title || host(d.url))}</strong>${docMeta(d)}${d.error ? `<div class="err" style="margin-top:4px">${esc(d.error)}</div>` : ''}</td>
+      <td>${{ ready: '<span class="pill ok">Ready</span>', error: '<span class="pill bad">Problem</span>', uploading: '<span class="pill warn">Processing</span>', processing: '<span class="pill warn">Reading</span>' }[d.status] || esc(d.status)}</td>
+      <td>${d.sections ?? '—'}</td>
+      <td>${d.status === 'ready' ? `<label class="row" style="gap:6px"><input type="checkbox" data-toggle="${esc(d.id)}" ${d.enabled ? 'checked' : ''}> ${d.enabled ? 'On' : 'Off'}</label>` : '—'}</td>
+      <td style="text-align:right;white-space:nowrap">${d.status === 'ready' ? `<button class="btn sm" data-view="${esc(d.id)}">View</button> ` : ''}${d.kind === 'web' ? `<button class="btn sm" data-recheck="${esc(d.id)}">Re-check</button> ` : ''}<button class="btn sm" data-rename="${esc(d.id)}">${d.kind === 'web' ? 'Rename' : 'Edit name'}</button> <button class="btn sm danger" data-del="${esc(d.id)}">Delete</button></td>
+    </tr>`).join('')}</tbody></table>`;
+}
+$('#web-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = $('#web-add'); const status = $('#upload-status');
+  const url = $('#web-url').value.trim(); if (!url) return;
+  btn.disabled = true; status.textContent = `Reading ${url}…`;
+  try {
+    const r = await api('POST', '/admin/docs/web', { url, title: $('#web-title').value.trim() });
+    docs = r.docs; renderDocs();
+    const d = docs.find((x) => x.id === r.result.id);
+    status.textContent = `✓ ${d?.title || url} is ready: ${r.result.sections} section${r.result.sections === 1 ? '' : 's'}. Ranger can cite it now.`;
+    $('#web-url').value = ''; $('#web-title').value = '';
+  } catch (err) { status.textContent = '✗ ' + err.message; } finally { btn.disabled = false; }
+});
+loaders.documents = async () => { docs = (await api('GET', '/admin/docs')).docs; renderDocs(); };
+async function uploadFile(file) {
+  const status = $('#upload-status');
+  const title = await askText('Title Ranger should use when citing this document:', file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' '));
+  if (title === null) return;
+  const publisher = await askText('Who published it? Ranger cites it as "<publisher>: <title>". Leave as OMAG for OMAG\'s own documents.', 'OMAG');
+  if (publisher === null) return;
+  try {
+    status.textContent = `Uploading ${file.name}…`;
+    const up = await api('POST', '/admin/docs', { filename: file.name, size: file.size, title: title.trim() || file.name, publisher: publisher.trim() || 'OMAG' });
+    const put = await fetch(up.uploadUrl.startsWith('/') ? location.origin + up.uploadUrl : up.uploadUrl, { method: 'PUT', headers: { 'content-type': up.contentType }, body: file });
+    if (!put.ok) throw new Error('Upload failed. Try again.');
+    status.textContent = `Reading ${file.name}…`;
+    const r = await api('POST', `/admin/docs/${up.id}/process`);
+    status.textContent = `✓ ${title} is ready: ${r.sections} section${r.sections === 1 ? '' : 's'}. Ranger can cite it now.`;
+  } catch (e) { status.textContent = '✗ ' + e.message; }
+  await loaders.documents().catch(fail);
+}
+$('#file-input').addEventListener('change', (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) uploadFile(f); });
+const drop = $('#drop');
+['dragenter', 'dragover'].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', (e) => { const f = e.dataTransfer.files[0]; if (f) uploadFile(f); });
+$('#docs-table').addEventListener('click', async (e) => {
+  const t = e.target.closest('[data-del],[data-rename],[data-view],[data-recheck]'); if (!t) return;
+  try {
+    if (t.dataset.recheck) {
+      t.disabled = true; t.textContent = 'Checking…';
+      const r = await api('POST', `/admin/docs/${t.dataset.recheck}/recheck`);
+      docs = r.docs; renderDocs();
+      toast(r.result.error ? `Couldn’t check it: ${r.result.error}` : r.result.changed ? `The page changed. Ranger now has the new version (${r.result.sections} sections).` : 'No changes since the last check.');
+      return;
+    }
+    if (t.dataset.del) {
+      const d = docs.find((x) => x.id === t.dataset.del);
+      if (!await ask(`Delete "${d.title || d.url}"? Ranger will stop citing it right away.`)) return;
+      docs = (await api('DELETE', `/admin/docs/${d.id}`)).docs; renderDocs(); toast('Deleted.');
+    } else if (t.dataset.rename) {
+      const d = docs.find((x) => x.id === t.dataset.rename);
+      const title = await askText('Title Ranger cites it by:', d.title); if (title === null) return;
+      const body = { title: title.trim() || d.title };
+      if (d.kind !== 'web') { const pub = await askText('Who published it?', d.publisher || 'OMAG'); if (pub === null) return; body.publisher = pub.trim() || 'OMAG'; }
+      if (body.title === d.title && (body.publisher ?? d.publisher) === (d.publisher || 'OMAG')) return;
+      docs = (await api('PUT', `/admin/docs/${d.id}`, body)).docs; renderDocs(); toast('Updated. Ranger cites it with the new name now.');
+    } else if (t.dataset.view) {
+      const d = docs.find((x) => x.id === t.dataset.view);
+      const { sections } = await api('GET', `/admin/docs/${d.id}/sections`);
+      openDrawer(d.title, `${d.kind === 'web' ? `<p class="hint"><a href="${esc(d.finalUrl || d.url)}" target="_blank" rel="noopener">Open the page ↗</a></p>` : ''}<p class="hint">How Ranger sees this ${d.kind === 'web' ? 'page' : 'document'}: ${sections.length} section${sections.length === 1 ? '' : 's'}. Ranger searches these and cites them as shown.</p>` +
+        (sections.length ? sections.map((s) => `<div class="card" style="margin-top:10px"><div class="row" style="justify-content:space-between"><strong>${esc(s.heading)}</strong><span class="cite omag">${esc(s.cite)}</span></div><p style="white-space:pre-wrap;font-size:13.5px;line-height:1.55;margin:8px 0 0">${esc(s.text)}</p></div>`).join('') : '<p class="hint">Switch the document on to see its sections.</p>'));
+    }
+  } catch (err) { fail(err); }
+});
+$('#docs-table').addEventListener('change', async (e) => {
+  const t = e.target.closest('[data-toggle]'); if (!t) return;
+  try { docs = (await api('PUT', `/admin/docs/${t.dataset.toggle}`, { enabled: t.checked })).docs; renderDocs(); toast(t.checked ? 'Ranger can cite this document now.' : 'Ranger will stop citing this document.'); } catch (err) { fail(err); t.checked = !t.checked; }
+});
+
+/* ================= CONVERSATIONS ================= */
+let turns = [];
+function renderTurns() {
+  const q = $('#cv-search').value.trim().toLowerCase();
+  const list = turns.filter((t) => (!$('#cv-down').checked || t.rating === 'down') && (!q || (t.question || '').toLowerCase().includes(q)));
+  $('#cv-table').innerHTML = list.length ? `<table><thead><tr><th style="width:120px">When</th><th>Question</th><th style="width:160px">Member</th><th style="width:70px">Rating</th></tr></thead><tbody>${list.map((t) => `
+    <tr class="click" data-conv="${esc(t.conversationId)}" tabindex="0">
+      <td class="hint">${fmtDate(t.at)}</td>
+      <td>${t.attachments?.length ? `<div class="hint">📎 ${esc(t.attachments.join(', '))}</div>` : ''}<div class="trunc">${esc(t.question)}</div>${t.error ? '<span class="pill bad" style="margin-top:4px">Error</span>' : ''}${t.unread?.length ? '<span class="pill warn" style="margin-top:4px">Removed citation</span>' : ''}</td>
+      <td class="hint">${esc(t.city || '—')}<br>${esc(FORM_LABEL[t.form] || '')}</td>
+      <td>${t.rating === 'up' ? '👍' : t.rating === 'down' ? '👎' : ''}</td>
+    </tr>`).join('')}</tbody></table>` : '<div class="empty">No conversations match.</div>';
+}
+loaders.conversations = async () => { turns = (await api('GET', `/admin/conversations?days=${$('#cv-days').value}`)).turns; renderTurns(); };
+$('#cv-days').addEventListener('change', () => loaders.conversations().catch(fail));
+$('#cv-down').addEventListener('change', renderTurns);
+$('#cv-search').addEventListener('input', renderTurns);
+async function openConversation(id) {
+  try {
+    const { turns: all } = await api('GET', `/admin/conversations/${encodeURIComponent(id)}`);
+    const f = all[0] || {};
+    openDrawer('Conversation', `<p class="hint">${esc(f.city || 'No municipality given')} · ${esc(FORM_LABEL[f.form] || 'No program type')} · ${all.length} question${all.length === 1 ? '' : 's'}</p>` + all.map((t) => `
+      <div style="margin-top:16px">
+        ${t.attachments?.length ? `<div class="hint" style="text-align:right">📎 Attached: ${esc(t.attachments.join(', '))} (the file isn’t kept)</div>` : ''}
+        <div class="q" style="margin-left:auto;width:fit-content">${esc(t.question)}</div>
+        <div class="a" style="margin-top:8px">${t.error ? `<p class="err">Error: ${esc(t.error)}</p>` : md(t.answer || '', new Map((t.citations || []).map((c) => [c, c])))}</div>
+        <div class="hint" style="margin-top:4px">${fmtDate(t.at)} · ${t.rating === 'up' ? '👍 helpful' : t.rating === 'down' ? '👎 not helpful' : 'not rated'}${t.ratingNote ? ` · “${esc(t.ratingNote)}”` : ''} · ${((t.latencyMs || 0) / 1000).toFixed(1)}s · ${esc(t.model || '')}${t.unread?.length ? ` · removed: ${esc(t.unread.join(', '))}` : ''}</div>
+      </div>`).join(''));
+  } catch (e) { fail(e); }
+}
+$('#cv-table').addEventListener('click', (e) => { const r = e.target.closest('[data-conv]'); if (r) openConversation(r.dataset.conv); });
+$('#cv-table').addEventListener('keydown', (e) => { const r = e.target.closest('[data-conv]'); if (r && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openConversation(r.dataset.conv); } });
+
+/* ================= MESSAGES ================= */
+loaders.messages = async () => {
+  const { contacts } = await api('GET', '/admin/contacts');
+  $('#msg-list').innerHTML = contacts.length ? contacts.map((c) => `
+    <div class="card">
+      <div class="row" style="justify-content:space-between;align-items:flex-start"><div><strong>${esc(c.name || 'Name not given')}</strong>${c.phone ? ` · <a href="tel:${esc(c.phone.replace(/[^\d+]/g, ''))}">${esc(c.phone)}</a>` : ''}<div class="hint">${esc(c.city || 'No municipality given')}${c.form ? ` · ${esc(FORM_LABEL[c.form] || c.form)}` : ''}</div></div><span class="hint">${fmtDate(c.at)}</span></div>
+      <p style="margin:8px 0;white-space:pre-wrap">${esc(c.note || '(no note)')}</p>
+      ${c.transcript ? `<details><summary class="hint" style="font-weight:600">Conversation they sent</summary><pre style="white-space:pre-wrap;font:13px/1.55 'Public Sans',sans-serif;background:#f7f9fb;border-radius:8px;padding:10px;margin-top:8px">${esc(c.transcript)}</pre></details>` : ''}
+      ${c.conversationId ? `<button class="btn sm" style="margin-top:8px" data-conv="${esc(c.conversationId)}">Open conversation</button>` : ''}
+    </div>`).join('') : '<div class="card empty">No messages yet.</div>';
+};
+$('#msg-list').addEventListener('click', (e) => { const b = e.target.closest('[data-conv]'); if (b) openConversation(b.dataset.conv); });
+
+/* ================= DOCUMENT TEMPLATES ================= */
+let tplList = [], tplMeta = {}, tplCur = null, tplDirty = false;
+const VARIANT_ORDER = ['all', 'camp', 'facility', 'campground', 'unsure'];
+const TYPE_LABEL = { text: 'Short text', textarea: 'Long text', number: 'Number', date: 'Date', select: 'Choice', yesno: 'Yes / No' };
+const PREFILL_LABEL = { '': 'Nothing', municipality: 'Municipality name', city_name_only: 'Name without “City of”', today: 'Today’s date' };
+function b64Download(b64, filename, type) {
+  const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([bytes], { type })); a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+}
+function renderTplList() {
+  $('#tpl-table').innerHTML = tplList.length ? tplList.map((t) => {
+    const files = VARIANT_ORDER.filter((v) => t.variants[v]);
+    return `<div class="tpl-row">
+      <div><div class="row" style="gap:8px"><strong>${esc(t.title)}</strong>${t.enabled ? '<span class="pill ok">On</span>' : '<span class="pill muted">Off</span>'}</div>
+        <div class="hint" style="margin-top:2px">${esc(t.description || 'No description')}</div>
+        <div class="chips">${files.length ? files.map((v) => `<span class="chip on" title="${esc(t.variants[v].filename)}">${esc(tplMeta.variants?.[v] || v)}</span>`).join('') : '<span class="chip">No Word file yet</span>'}<span class="chip">${t.fields.length} question${t.fields.length === 1 ? '' : 's'}</span></div></div>
+      <div class="row" style="flex-wrap:nowrap"><label class="row hint" style="gap:6px;white-space:nowrap"><input type="checkbox" data-tpl-toggle="${esc(t.id)}" ${t.enabled ? 'checked' : ''}> Members can use it</label><button class="btn sm" data-tpl-edit="${esc(t.id)}">Edit</button></div>
+    </div>`;
+  }).join('') : '<div class="empty">No templates yet. Import OMAG’s template pack, or create one with <strong>New template</strong>.</div>';
+}
+loaders.templates = async () => {
+  if (tplCur && !$('#tpl-edit-view').hidden) return;
+  const r = await api('GET', '/admin/templates');
+  tplList = r.templates; tplMeta = r; renderTplList();
+};
+$('#tpl-table').addEventListener('change', async (e) => {
+  const c = e.target.closest('[data-tpl-toggle]'); if (!c) return;
+  try { await api('PUT', `/admin/templates/${c.dataset.tplToggle}`, { enabled: c.checked }); toast(c.checked ? 'Members can use this template now.' : 'Template switched off.'); await loaders.templates(); }
+  catch (err) { c.checked = !c.checked; fail(err); }
+});
+$('#tpl-table').addEventListener('click', (e) => { const b = e.target.closest('[data-tpl-edit]'); if (b) openTplEditor(b.dataset.tplEdit); });
+$('#tpl-new').addEventListener('click', async () => {
+  const title = await askText('Name of the document (members see this), e.g. “Drug and Alcohol Testing Policy”:'); if (!title?.trim()) return;
+  try { const r = await api('POST', '/admin/templates', { title: title.trim() }); await openTplEditor(r.template.id); } catch (err) { fail(err); }
+});
+$('#tpl-export').addEventListener('click', async (e) => {
+  e.target.disabled = true;
+  try { const r = await api('GET', '/admin/templates-export'); b64Download(r.data, r.filename, 'application/zip'); } catch (err) { fail(err); } finally { e.target.disabled = false; }
+});
+$('#tpl-import-btn').addEventListener('click', () => $('#tpl-import-file').click());
+$('#tpl-import-file').addEventListener('change', async (e) => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  if (!await ask(`Import “${f.name}”? Templates in the pack replace any existing templates with the same name.`)) return;
+  try {
+    const up = await api('POST', '/admin/templates-import/upload');
+    const put = await fetch(up.uploadUrl.startsWith('/') ? location.origin + up.uploadUrl : up.uploadUrl, { method: 'PUT', headers: { 'content-type': up.contentType }, body: f });
+    if (!put.ok) throw new Error('Upload failed. Try again.');
+    const r = await api('POST', '/admin/templates-import', { key: up.key });
+    tplList = r.templates; renderTplList();
+    toast(`Imported ${r.imported.map((x) => x.title).join(', ')}.`);
+  } catch (err) { fail(err); }
+});
+
+/* --- editor --- */
+function optText(opts) { return (opts || []).map((o) => [o.value, o.label !== o.value ? o.label : '', o.text && o.text !== o.label ? o.text : ''].join(' | ').replace(/( \| )+$/, '')).join('\n'); }
+function parseOpts(text) {
+  return String(text || '').split('\n').map((l) => l.trim()).filter(Boolean).map((l) => {
+    const [value, label, ...rest] = l.split('|').map((x) => x.trim());
+    return { value: value.toLowerCase().replace(/[^a-z0-9_-]+/g, '_').replace(/^_|_$/g, '') || value, label: label || value, ...(rest.length && rest.join(' | ') ? { text: rest.join(' | ') } : {}) };
+  });
+}
+function usedIn(key) { return VARIANT_ORDER.filter((v) => tplCur.variants[v]?.tags.includes(key)); }
+function questionHtml(f, i) {
+  const used = usedIn(f.key);
+  return `<div class="tq${used.length ? '' : ' unused'}" data-q="${i}">
+    <div class="tq-head"><div class="row" style="gap:8px"><span class="tq-key">{{${esc(f.key)}}}</span><span class="hint">${used.length ? (used.length === Object.keys(tplCur.variants).length ? 'in every file' : 'in: ' + used.map((v) => esc(tplMeta.variants?.[v] || v)).join(', ')) : 'not in any uploaded file'}</span></div>
+      <div class="row">${i > 0 ? `<button class="icon-btn" type="button" data-q-up="${i}" aria-label="Move up">↑</button>` : ''}${used.length ? '' : `<button class="btn sm danger" type="button" data-q-del="${i}">Remove</button>`}</div></div>
+    <div class="field half"><label>Question members see</label><input class="input" data-k="label" value="${esc(f.label)}"></div>
+    <div class="field"><label>Answer type</label><select class="select" data-k="type">${(tplMeta.fieldTypes || Object.keys(TYPE_LABEL)).map((t) => `<option value="${t}"${t === f.type ? ' selected' : ''}>${TYPE_LABEL[t] || t}</option>`).join('')}</select></div>
+    <div class="field"><label>Section heading</label><input class="input" data-k="group" value="${esc(f.group || '')}" placeholder="e.g. Pay"></div>
+    <div class="field full"><label>Help text</label><textarea data-k="help" rows="2" placeholder="Examples, what it prints as, or a legal note">${esc(f.help || '')}</textarea></div>
+    <div class="field"><label>Default answer</label><input class="input" data-k="default" value="${esc(f.default ?? '')}"></div>
+    <div class="field"><label>Fill in automatically with</label><select class="select" data-k="prefill">${(tplMeta.prefills || Object.keys(PREFILL_LABEL)).map((p) => `<option value="${p}"${p === (f.prefill || '') ? ' selected' : ''}>${PREFILL_LABEL[p] ?? p}</option>`).join('')}</select></div>
+    <div class="field" style="justify-content:flex-end"><label class="row" style="gap:6px;font-weight:600"><input type="checkbox" data-k="required" ${f.required ? 'checked' : ''}> Required</label></div>
+    <div class="field full" ${f.type === 'select' ? '' : 'hidden'} data-opts><label>Choices: one per line, as <span class="mono">value | what members see | text printed in the document</span></label><textarea data-k="options" rows="4" class="mono">${esc(optText(f.options))}</textarea></div>
+  </div>`;
+}
+function readQuestions() {
+  return $$('#tpl-questions .tq').map((el) => {
+    const f = tplCur.fields[Number(el.dataset.q)];
+    const g = (k) => $(`[data-k="${k}"]`, el);
+    const type = g('type').value;
+    const out = { key: f.key, label: g('label').value.trim(), type, group: g('group').value.trim(), help: g('help').value.trim(), prefill: g('prefill').value, required: g('required').checked };
+    const d = g('default').value.trim();
+    if (d !== '') out.default = type === 'number' ? Number(d) : type === 'yesno' ? /^(y|yes|true)$/i.test(d) : d;
+    if (type === 'select') out.options = parseOpts(g('options').value);
+    return out;
+  });
+}
+function renderTplEditor() {
+  const t = tplCur;
+  const filesRows = VARIANT_ORDER.map((v) => {
+    const f = t.variants[v];
+    return `<tr><td style="width:220px"><strong>${esc(tplMeta.variants?.[v] || v)}</strong>${v === 'all' ? '<div class="hint">Used when there isn’t a file for that form</div>' : ''}</td>
+      <td>${f ? `${esc(f.filename)}<div class="hint">${f.tags.length} field${f.tags.length === 1 ? '' : 's'} · uploaded ${fmtDate(f.uploadedAt)}</div>` : '<span class="hint">—</span>'}</td>
+      <td style="text-align:right;white-space:nowrap"><label class="btn sm" style="cursor:pointer">${f ? 'Replace' : 'Upload'}<input type="file" accept=".docx" class="sr-only" data-variant-upload="${v}"></label>${f ? ` <button class="btn sm danger" type="button" data-variant-remove="${v}">Remove</button>` : ''}</td></tr>`;
+  }).join('');
+  $('#tpl-edit-view').innerHTML = `
+    <div class="page-head">
+      <div><button class="btn sm" id="tpl-back">← All templates</button><h1 style="margin-top:10px">${esc(t.title)}</h1><p>${t.enabled ? 'Members can use this template.' : 'Switched off: members don’t see it yet.'}</p></div>
+      <div class="row">
+        <label for="tpl-test-form" class="sr-only">Program type for the test</label>
+        <select class="select" id="tpl-test-form" style="width:auto">${['camp', 'facility', 'campground', 'unsure'].map((v) => `<option value="${v}">${esc(tplMeta.variants?.[v] || v)}</option>`).join('')}</select>
+        <button class="btn" id="tpl-test">Test with sample answers</button>
+        <button class="btn primary" id="tpl-save">Save</button>
+      </div>
+    </div>
+    <div class="grid" style="gap:16px">
+      <div class="card"><h2>About</h2>
+        <div class="grid g2" style="margin-top:10px;gap:12px">
+          <div class="field"><label for="tpl-title">Title members see</label><input class="input" id="tpl-title" value="${esc(t.title)}"></div>
+          <div class="field"><label for="tpl-order">Order in the list</label><input class="input" id="tpl-order" type="number" min="0" max="99" value="${t.order ?? 99}"></div>
+          <div class="field" style="grid-column:1 / -1"><label for="tpl-desc">Short description</label><input class="input" id="tpl-desc" value="${esc(t.description || '')}" maxlength="400"></div>
+        </div>
+        <label class="row" style="gap:8px;margin-top:12px;font-weight:600"><input type="checkbox" id="tpl-enabled" ${t.enabled ? 'checked' : ''}> Members can use this template</label>
+      </div>
+      <div class="card"><h2>Word files</h2><p class="sub">One file for every program type, or a separate version for some. Ranger reads the <code>{{fields}}</code> in each file.</p><table class="files"><tbody>${filesRows}</tbody></table><div id="tpl-upload-status" class="hint" role="status" style="margin-top:8px"></div></div>
+      <div class="card"><h2>Before you adopt this</h2><p class="sub">Shown above the questions. Put a blank line between notes.</p><textarea id="tpl-notes" rows="6">${esc((t.notes || []).join('\n\n'))}</textarea></div>
+      <div class="card"><h2>Questions</h2><p class="sub">One for each field in the Word files. Members see them in this order, under their section headings.</p><div id="tpl-questions" class="grid" style="gap:10px">${t.fields.length ? t.fields.map(questionHtml).join('') : '<div class="empty">Upload a Word file with {{fields}} and the questions appear here.</div>'}</div></div>
+      <div class="card"><h2>Delete</h2><p class="sub">Removes the template and its Word files. Members lose access right away.</p><button class="btn danger" id="tpl-delete">Delete this template</button></div>
+    </div>`;
+  tplDirty = false;
+}
+async function openTplEditor(id) {
+  try {
+    const r = await api('GET', `/admin/templates/${id}`);
+    tplCur = r.template; tplMeta = { ...tplMeta, ...r };
+    $('#tpl-list-view').hidden = true; $('#tpl-edit-view').hidden = false;
+    renderTplEditor(); window.scrollTo(0, 0);
+  } catch (err) { fail(err); }
+}
+function collectTpl() {
+  return {
+    title: $('#tpl-title').value, description: $('#tpl-desc').value, order: Number($('#tpl-order').value),
+    notes: $('#tpl-notes').value.split(/\n\s*\n/).map((x) => x.replace(/\s*\n\s*/g, ' ').trim()).filter(Boolean),
+    fields: readQuestions(), enabled: $('#tpl-enabled').checked
+  };
+}
+async function saveTpl(quiet) {
+  const r = await api('PUT', `/admin/templates/${tplCur.id}`, collectTpl());
+  tplCur = r.template; renderTplEditor();
+  if (!quiet) toast('Saved. Members see the changes within a minute.');
+}
+const tplEdit = $('#tpl-edit-view');
+tplEdit.addEventListener('input', () => { tplDirty = true; });
+const setUploadStatus = (t) => { const el = $('#tpl-upload-status'); if (el) el.textContent = t; };
+tplEdit.addEventListener('change', async (e) => {
+  if (!e.target.closest('[data-variant-upload]')) tplDirty = true;
+  const typeSel = e.target.closest('[data-k="type"]');
+  if (typeSel) $('[data-opts]', typeSel.closest('.tq')).hidden = typeSel.value !== 'select';
+  const up = e.target.closest('[data-variant-upload]');
+  if (up) {
+    const file = up.files[0]; up.value = ''; if (!file) return;
+    const variant = up.dataset.variantUpload;
+    try {
+      if (tplDirty) await saveTpl(true);
+      setUploadStatus(`Uploading ${file.name}…`);
+      const u = await api('POST', `/admin/templates/${tplCur.id}/upload`, { variant, filename: file.name, size: file.size });
+      const put = await fetch(u.uploadUrl.startsWith('/') ? location.origin + u.uploadUrl : u.uploadUrl, { method: 'PUT', headers: { 'content-type': u.contentType }, body: file });
+      if (!put.ok) throw new Error('Upload failed. Try again.');
+      setUploadStatus(`Reading ${file.name}…`);
+      const r = await api('POST', `/admin/templates/${tplCur.id}/attach`, { variant, key: u.key, filename: file.name });
+      tplCur = r.template; renderTplEditor();
+      setUploadStatus(`✓ ${file.name}: ${r.tags.length} field${r.tags.length === 1 ? '' : 's'} found${r.added.length ? `, ${r.added.length} new question${r.added.length === 1 ? '' : 's'} added below (${r.added.join(', ')}). Write the question text, then Save.` : '.'}`);
+    } catch (err) { setUploadStatus('✗ ' + err.message); }
+  }
+});
+tplEdit.addEventListener('click', async (e) => {
+  const t = e.target;
+  try {
+    if (t.closest('#tpl-back')) {
+      if (tplDirty && !await ask('Leave without saving your changes?')) return;
+      tplCur = null; $('#tpl-edit-view').hidden = true; $('#tpl-list-view').hidden = false; await loaders.templates(); return;
+    }
+    if (t.closest('#tpl-save')) { await saveTpl(); return; }
+    if (t.closest('#tpl-test')) {
+      if (tplDirty) await saveTpl(true);
+      const sample = {};
+      for (const f of tplCur.fields) sample[f.key] = f.default ?? ({ number: 3, date: new Date().toISOString().slice(0, 10), yesno: true, select: f.options?.[0]?.value }[f.type] ?? `[${f.label}]`);
+      if (!tplCur.fields.find((f) => f.key === 'municipality_name')?.default) sample.municipality_name = 'City of Example';
+      const r = await api('POST', `/admin/templates/${tplCur.id}/test`, { form: $('#tpl-test-form').value, values: sample });
+      b64Download(r.data, r.filename.replace(/\.docx$/, ' (TEST).docx'), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+      toast(`Test file downloaded (${tplMeta.variants?.[r.variant] || r.variant} version). Each answer shows the question in [brackets].`);
+      return;
+    }
+    if (t.closest('#tpl-delete')) {
+      if (!await ask(`Delete “${tplCur.title}” and its Word files? This can’t be undone. (Tip: Download all (backup) first.)`)) return;
+      await api('DELETE', `/admin/templates/${tplCur.id}`); tplCur = null;
+      $('#tpl-edit-view').hidden = true; $('#tpl-list-view').hidden = false; await loaders.templates(); toast('Template deleted.'); return;
+    }
+    const rm = t.closest('[data-variant-remove]');
+    if (rm) {
+      if (!await ask(`Remove the ${tplMeta.variants?.[rm.dataset.variantRemove] || rm.dataset.variantRemove} file?`)) return;
+      if (tplDirty) await saveTpl(true);
+      const r = await api('POST', `/admin/templates/${tplCur.id}/remove-file`, { variant: rm.dataset.variantRemove });
+      tplCur = r.template; renderTplEditor(); return;
+    }
+    const del = t.closest('[data-q-del]');
+    if (del) { const fields = readQuestions(); fields.splice(Number(del.dataset.qDel), 1); tplCur.fields = fields; renderTplEditor(); tplDirty = true; return; }
+    const upq = t.closest('[data-q-up]');
+    if (upq) { const i = Number(upq.dataset.qUp); const fields = readQuestions(); [fields[i - 1], fields[i]] = [fields[i], fields[i - 1]]; tplCur.fields = fields; renderTplEditor(); tplDirty = true; }
+  } catch (err) { fail(err); }
+});
+window.addEventListener('beforeunload', (e) => { if (tplDirty && tplCur) { e.preventDefault(); e.returnValue = ''; } });
+
+/* ================= SETTINGS ================= */
+let settings = null;
+let starterTemplates = [];
+const starterTplSelect = (s) => `<label class="row hint starter-tpl" style="gap:6px;margin:6px 0 0 138px;flex-wrap:nowrap"${s.doc ? '' : ' hidden'}><span style="white-space:nowrap">Opens</span><select class="select" data-k="templateId" style="max-width:360px"><option value="">Ask which document</option>${starterTemplates.map((t) => `<option value="${esc(t.id)}" ${t.id === s.templateId ? 'selected' : ''}>${esc(t.title)}${t.enabled === false ? ' (switched off)' : ''}</option>`).join('')}</select></label>`;
+function starterRow(s = {}) {
+  return `<div class="starter"><div class="row" style="flex-wrap:nowrap">
+    <label class="sr-only">Label</label><input class="input" data-k="kicker" value="${esc(s.kicker || '')}" placeholder="Label" style="width:130px">
+    <label class="sr-only">Question</label><input class="input" data-k="text" value="${esc(s.text || '')}" placeholder="Question members can click">
+    <label class="row hint" style="gap:4px;white-space:nowrap" title="Opens a document template instead of asking Ranger"><input type="checkbox" data-k="doc" ${s.doc ? 'checked' : ''}> Doc</label>
+    <button class="icon-btn" type="button" data-remove aria-label="Remove starter">✕</button>
+  </div>${starterTplSelect(s)}</div>`;
+}
+let privacyDefault = '';
+$('#set-privacy-default').addEventListener('click', async () => { if (await ask('Replace the notice with the default text? (Click Save settings to keep it.)')) $('#set-privacy').value = privacyDefault; });
+loaders.settings = async () => {
+  const r = await api('GET', '/admin/settings'); settings = r.settings;
+  $('#set-welcome').value = settings.welcomeText; $('#set-disclaimer').value = settings.disclaimer; $('#set-phone').value = settings.contactPhone;
+  privacyDefault = r.privacyDefault; $('#set-privacy').value = settings.privacyNotice || r.privacyDefault;
+  const rd = settings.retentionDays; $('#set-retention-days').value = rd;
+  $('#set-retention').textContent = rd % 365 === 0 ? `${rd / 365} year${rd === 365 ? '' : 's'}` : `${rd} days`;
+  loadRecipients();
+  $('#set-ip').value = settings.dailyLimitPerIp; $('#set-global').value = settings.dailyLimitGlobal;
+  $('#set-pin').value = settings.priceInputPerM || 0; $('#set-pout').value = settings.priceOutputPerM || 0;
+  const models = { ...r.models }; if (!models[settings.modelId]) models[settings.modelId] = settings.modelId;
+  $('#set-model').innerHTML = Object.entries(models).map(([id, label]) => `<option value="${esc(id)}" ${id === settings.modelId ? 'selected' : ''}>${esc(label)}</option>`).join('') + '<option value="__other">Another model (type its ID)…</option>';
+  $('#set-model-other').hidden = true; $('#set-model-other').value = '';
+  const backups = { '': 'None (show an error instead)', ...r.models }; const fb = settings.fallbackModelId || ''; if (!(fb in backups)) backups[fb] = fb;
+  $('#set-fallback').innerHTML = Object.entries(backups).map(([id, label]) => `<option value="${esc(id)}" ${id === fb ? 'selected' : ''}>${esc(label)}</option>`).join('');
+  starterTemplates = await api('GET', '/admin/templates').then((t) => t.templates).catch(() => []);
+  $('#set-starters').innerHTML = settings.starters.map(starterRow).join('');
+};
+$('#set-model').addEventListener('change', () => { const other = $('#set-model').value === '__other'; $('#set-model-other').hidden = !other; if (other) $('#set-model-other').focus(); });
+
+/* who gets Ranger's emails */
+function renderRecipients(lists) {
+  for (const [name, list] of Object.entries(lists)) {
+    const box = $(`[data-list="${name}"] .rcp-list`); if (!box) continue;
+    const confirmed = list.filter((r) => !r.pending).length;
+    box.innerHTML = list.length ? `<table><tbody>${list.map((r) => `<tr><td style="word-break:break-all">${esc(r.email)}</td><td style="width:150px">${r.pending ? '<span class="pill warn">Waiting to confirm</span>' : '<span class="pill ok">Receiving</span>'}</td><td style="width:90px;text-align:right">${r.id && !(name === 'alerts' && confirmed <= 1) ? `<button class="btn sm danger" data-rcp="${esc(r.id)}" data-email="${esc(r.email)}">Remove</button>` : ''}</td></tr>`).join('')}</tbody></table>`
+      : `<p class="hint">${name === 'messages' ? 'Nobody yet, so notes go to the alerts list.' : 'Nobody yet. Add at least one address so alarms reach someone.'}</p>`;
+  }
+}
+async function loadRecipients() {
+  try { renderRecipients((await api('GET', '/admin/recipients')).lists); } catch (e) { $$('.rcp-list').forEach((b) => (b.innerHTML = `<p class="err">${esc(e.message)}</p>`)); }
+}
+$$('.rcp-form').forEach((f) => f.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const list = f.closest('[data-list]').dataset.list, input = $('input', f);
+  try { const r = await api('POST', `/admin/recipients/${list}`, { email: input.value }); input.value = ''; renderRecipients(r.lists); toast(r.message); } catch (err) { fail(err); }
+}));
+$$('.rcp-list').forEach((box) => box.addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-rcp]'); if (!b) return;
+  const list = box.closest('[data-list]').dataset.list;
+  if (!await ask(`Stop sending ${list === 'messages' ? '"Talk to OMAG" messages' : 'alerts'} to ${b.dataset.email}?`)) return;
+  try { const r = await api('DELETE', `/admin/recipients/${list}/${b.dataset.rcp}`); renderRecipients(r.lists); toast(r.message); } catch (err) { fail(err); }
+}));
+
+$('#set-add-starter').addEventListener('click', () => { if ($$('.starter').length >= 6) return toast('Up to 6 starters.'); $('#set-starters').insertAdjacentHTML('beforeend', starterRow()); });
+$('#set-starters').addEventListener('click', (e) => { if (e.target.closest('[data-remove]')) e.target.closest('.starter').remove(); });
+$('#set-starters').addEventListener('change', (e) => { if (e.target.matches('[data-k=doc]')) $('.starter-tpl', e.target.closest('.starter')).hidden = !e.target.checked; });
+$('#set-save').addEventListener('click', async () => {
+  try {
+    const starters = $$('#set-starters .starter').map((r) => ({ kicker: $('[data-k=kicker]', r).value, text: $('[data-k=text]', r).value, doc: $('[data-k=doc]', r).checked, templateId: $('[data-k=templateId]', r).value }));
+    await api('PUT', '/admin/settings', {
+      welcomeText: $('#set-welcome').value, disclaimer: $('#set-disclaimer').value, contactPhone: $('#set-phone').value, privacyNotice: $('#set-privacy').value,
+      starters, dailyLimitPerIp: Number($('#set-ip').value), dailyLimitGlobal: Number($('#set-global').value), modelId: $('#set-model').value === '__other' ? $('#set-model-other').value.trim() : $('#set-model').value, retentionDays: Number($('#set-retention-days').value), fallbackModelId: $('#set-fallback').value,
+      priceInputPerM: Number($('#set-pin').value || 0), priceOutputPerM: Number($('#set-pout').value || 0)
+    });
+    await loaders.settings(); toast('Settings saved. Members see them within a minute.');
+  } catch (e) { fail(e); }
+});
+
+/* ================= LIBRARY ================= */
+function renderLib(s) {
+  $('#lib-stats').innerHTML = [
+    ['Statute sections', s.statuteSections.toLocaleString(), s.origin === 'refreshed' ? 'From the latest rebuild' : 'From the last deploy'],
+    ['Built', fmtDay(String(s.builtAt).slice(0, 10)), 'From official sources'],
+    ['OMAG sections', s.omagSections, 'From switched-on documents'],
+    ['Last update check', s.lastCheck ? fmtDate(s.lastCheck.at) : 'Not yet', s.lastCheck ? s.lastCheck.message : 'Runs daily']
+  ].map(([l, v, h]) => `<div class="card stat"><div class="label">${l}</div><div class="value" style="font-size:22px">${esc(v)}</div><div class="hint">${esc(h)}</div></div>`).join('');
+}
+
+/* a job's status (library rebuild, answer checks) */
+const JOB_PILL = { idle: ['muted', 'Not run yet'], queued: ['warn', 'Starting'], running: ['warn', 'Running'], done: ['ok', 'Finished'], failed: ['bad', 'Stopped'] };
+const jobLine = (j) => {
+  if (!j || j.state === 'idle') return 'Hasn’t run from the admin panel yet.';
+  const who = j.by === 'schedule' ? 'automatically' : `by ${j.by}`;
+  const when = j.finishedAt ? `Finished ${fmtDate(j.finishedAt)}` : j.startedAt ? `Started ${fmtDate(j.startedAt)}` : `Requested ${fmtDate(j.queuedAt)}`;
+  return `${j.message || ''} ${when}, ${who}.`;
+};
+const jobBusy = (j) => j && ['queued', 'running'].includes(j.state);
+const pollers = {};
+function poll(name, fn, ms = 5000) {
+  clearTimeout(pollers[name]);
+  pollers[name] = setTimeout(async () => { try { if (await fn()) poll(name, fn, ms); } catch (e) { fail(e); } }, ms);
+}
+
+function renderBuild(j) {
+  const [cls, label] = JOB_PILL[j.state] || JOB_PILL.idle;
+  $('#build-pill').innerHTML = `<span class="pill ${cls}">${label}</span>`;
+  $('#build-msg').textContent = jobLine(j);
+  const log = j.log || [];
+  $('#build-log-wrap').hidden = !log.length;
+  $('#build-log').textContent = log.join('\n');
+  if (j.state === 'failed') $('#build-log-wrap').open = true;
+  $('#lib-rebuild').disabled = jobBusy(j);
+  $('#lib-rebuild').textContent = jobBusy(j) ? 'Rebuilding…' : 'Rebuild now';
+}
+function watchBuild(prevState) {
+  poll('build', async () => {
+    const { job } = await api('GET', '/admin/library/build');
+    renderBuild(job);
+    if (jobBusy(job)) return true;
+    if (job.state === 'done') { renderLib(await api('GET', '/admin/library')); loadSources(); toast('The statute library was rebuilt.'); }
+    if (job.state === 'failed') toast('The rebuild stopped. Ranger keeps its current library.');
+    return false;
+  });
+}
+async function startRebuild() {
+  try { const { job } = await api('POST', '/admin/library/rebuild'); renderBuild(job); watchBuild(); toast('Rebuilding. This takes about 3–8 minutes; you can leave this page.'); } catch (e) { fail(e); }
+}
+$('#lib-rebuild').addEventListener('click', async () => {
+  if (await ask('Rebuild the statute library now? It downloads every source again and takes about 3–8 minutes. Ranger keeps answering with the current library meanwhile.')) startRebuild();
+});
+
+let srcChecks = {};
+function renderSources(r) {
+  const row = (x) => {
+    const c = srcChecks[x.url];
+    const status = c ? (c.ok ? `<span class="pill ok">✓ ${esc(c.message)}</span>` : `<span class="pill bad">✗ Problem</span><div class="hint" style="margin-top:4px">${esc(c.message)}</div>`) : '';
+    return `<tr>
+      <td style="width:190px"><strong>${esc(x.label)}</strong><div class="hint">${esc(x.name)}</div></td>
+      <td>${x.why ? `<div style="font-size:13.5px;line-height:1.5">${esc(x.why)}</div>` : ''}<a class="url" href="${esc(x.url)}" target="_blank" rel="noopener" title="${esc(x.url)}">${esc(x.url.replace(/^https?:\/\//, ''))}</a>${x.include ? `<div class="hint mono" style="margin-top:2px" title="Which sections are kept (patterns matched against section numbers)">${esc(x.include)}</div>` : ''}</td>
+      <td style="width:90px;text-align:right"><strong>${x.sections.toLocaleString()}</strong><div class="hint">sections</div></td>
+      <td style="width:210px">${status}</td>
+    </tr>`;
+  };
+  const ok = r.sources.filter((x) => x.kind === 'oklahoma'), fed = r.sources.filter((x) => x.kind === 'federal'), bills = r.sources.filter((x) => x.kind === 'bill');
+  $('#src-table').innerHTML = `<table><thead><tr><th colspan="4">Oklahoma Statutes · Oklahoma Legislature</th></tr></thead><tbody>${ok.map(row).join('')}</tbody>
+    ${fed.length ? `<thead><tr><th colspan="4" style="padding-top:18px">Federal regulations · eCFR</th></tr></thead><tbody>${fed.map(row).join('')}</tbody>` : ''}
+    ${bills.length ? `<thead><tr><th colspan="4" style="padding-top:18px">Enrolled bills · used only for new sections a title PDF doesn't have yet</th></tr></thead><tbody>${bills.map(row).join('')}</tbody>` : ''}</table>
+    <p class="hint" style="margin:10px 0 0">Required sections: <span class="mono">${esc(r.config.required.join('  ') || 'none')}</span></p>`;
+  $('#src-sub').textContent = `Every address Ranger's statute library is built from, and how many sections each one gives Ranger today.${r.updatedAt ? ` Last changed ${fmtDate(r.updatedAt)} by ${r.updatedBy}.` : ''}`;
+  $('#src-missing').innerHTML = r.missingRequired?.length ? `<div class="locked" style="border-color:#f0c4c0"><strong>Not in the current library yet:</strong> <span class="mono">${esc(r.missingRequired.join(', '))}</span>. Click <strong>Rebuild now</strong> to pick up source changes.</div>` : '';
+}
+let srcData = null;
+async function loadSources() {
+  try { srcData = await api('GET', '/admin/library/sources'); renderSources(srcData); }
+  catch (e) { $('#src-table').innerHTML = `<p class="err">${esc(e.message)}</p>`; }
+}
+loaders.library = async () => {
+  const [status, { job }] = await Promise.all([api('GET', '/admin/library'), api('GET', '/admin/library/build'), loadSources()]);
+  renderLib(status); renderBuild(job);
+  if (jobBusy(job)) watchBuild();
+};
+$('#src-check').addEventListener('click', async (e) => {
+  const btn = e.currentTarget; btn.disabled = true; btn.textContent = 'Checking…';
+  try {
+    const { results } = await api('POST', '/admin/library/check-sources');
+    srcChecks = Object.fromEntries(results.map((x) => [x.url, x]));
+    if (srcData) renderSources(srcData);
+    const bad = results.filter((x) => !x.ok).length;
+    toast(bad ? `${bad} address${bad === 1 ? '' : 'es'} need${bad === 1 ? 's' : ''} attention.` : `All ${results.length} addresses are working.`);
+  } catch (err) { fail(err); } finally { btn.disabled = false; btn.textContent = 'Check links'; }
+});
+
+/* source editor */
+const okRow = (x = {}) => `<div class="ed-row ed-ok">
+  <div class="g" style="grid-template-columns:90px 1fr auto"><div class="field"><label>Title</label><input class="input" data-k="title" value="${esc(x.title || '')}" placeholder="63"></div><div class="field"><label>Name</label><input class="input" data-k="name" value="${esc(x.name || '')}" placeholder="Cities and Towns"></div><button class="btn sm danger" data-remove style="align-self:end">Remove</button></div>
+  <div class="field"><label>PDF address</label><input class="input mono" data-k="url" value="${esc(x.url || '')}" placeholder="https://oklegislature.gov/OK_Statutes/CompleteTitles/os63.pdf"></div>
+  <div class="g" style="grid-template-columns:1fr 1fr"><div class="field"><label>Sections to keep</label><input class="input mono" data-k="include" value="${esc((x.include || []).join(' '))}" placeholder="^63-681 ^63-683\."></div><div class="field"><label>Why Ranger needs it</label><input class="input" data-k="why" value="${esc(x._why || '')}"></div></div>
+</div>`;
+const fedRow = (x = {}) => `<div class="ed-row ed-fed"><div class="g" style="grid-template-columns:90px 90px 1fr 1fr auto">
+  <div class="field"><label>CFR title</label><input class="input" data-k="title" type="number" value="${esc(x.title ?? '')}" placeholder="29"></div>
+  <div class="field"><label>Part</label><input class="input" data-k="part" value="${esc(x.part ?? '')}" placeholder="825"></div>
+  <div class="field"><label>Name</label><input class="input" data-k="name" value="${esc(x.name || '')}" placeholder="NFIP floodplain management"></div>
+  <div class="field"><label>Why Ranger needs it</label><input class="input" data-k="why" value="${esc(x._why || '')}"></div>
+  <button class="btn sm danger" data-remove style="align-self:end">Remove</button></div></div>`;
+function openEditor() {
+  if (!srcData) return;
+  $('#ed-ok').innerHTML = srcData.config.oklahoma.map(okRow).join('');
+  $('#ed-fed').innerHTML = srcData.config.federal.map(fedRow).join('');
+  $('#ed-required').value = srcData.config.required.join('\n');
+  $('#src-editor').hidden = false; $('#src-table').hidden = true; $('#src-edit').hidden = true;
+}
+function closeEditor() { $('#src-editor').hidden = true; $('#src-table').hidden = false; $('#src-edit').hidden = false; }
+$('#src-edit').addEventListener('click', openEditor);
+$('#ed-cancel').addEventListener('click', closeEditor);
+$('#ed-add-ok').addEventListener('click', () => { $('#ed-ok').insertAdjacentHTML('beforeend', okRow()); $('#ed-ok .ed-row:last-child input').focus(); });
+$('#ed-add-fed').addEventListener('click', () => { $('#ed-fed').insertAdjacentHTML('beforeend', fedRow()); $('#ed-fed .ed-row:last-child input').focus(); });
+$('#src-editor').addEventListener('click', (e) => { if (e.target.closest('[data-remove]')) e.target.closest('.ed-row').remove(); });
+$('#ed-save').addEventListener('click', async (e) => {
+  const val = (row, k) => $(`[data-k=${k}]`, row).value.trim();
+  const body = {
+    oklahoma: $$('#ed-ok .ed-row').map((r) => ({ title: val(r, 'title'), name: val(r, 'name'), url: val(r, 'url'), include: val(r, 'include'), why: val(r, 'why') })),
+    federal: $$('#ed-fed .ed-row').map((r) => ({ title: Number(val(r, 'title')), part: val(r, 'part'), name: val(r, 'name'), why: val(r, 'why') })),
+    required: $('#ed-required').value
+  };
+  e.target.disabled = true;
+  try {
+    srcData = await api('PUT', '/admin/library/sources', body); srcChecks = {};
+    renderSources(srcData); closeEditor();
+    if (await ask('Sources saved. Rebuild the library now so Ranger uses them?', { ok: 'Rebuild now', cancel: 'Later' })) startRebuild();
+  } catch (err) { fail(err); } finally { e.target.disabled = false; }
+});
+$('#lib-search-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const q = $('#lib-q').value.trim(); if (!q) return;
+  try {
+    const { results } = await api('POST', '/admin/library/search', { query: q, jurisdiction: $('#lib-j').value });
+    $('#lib-results').innerHTML = results.length ? `<table><tbody>${results.map((r) => `<tr><td style="width:200px">${citeChip(r.id, r.cite)}</td><td><strong>${esc(r.heading)}</strong><div class="hint trunc">${esc(r.excerpt)}</div></td></tr>`).join('')}</tbody></table>` : '<p class="hint">Nothing found.</p>';
+  } catch (err) { fail(err); }
+});
+
+/* ================= ANSWER CHECKS ================= */
+let checksForms = [];
+const chkRow = (c = { form: 'unsure', expect: [] }) => `<div class="q-row">
+  <div class="field"><label>Question</label><textarea data-k="q" rows="2">${esc(c.q || '')}</textarea></div>
+  <div class="field"><label>Program type</label><select class="select" data-k="form">${checksForms.map((f) => `<option value="${f}" ${f === c.form ? 'selected' : ''}>${esc(FORM_LABEL[f] || f)}</option>`).join('')}</select></div>
+  <div class="field"><label>Should cite</label><input class="input mono" data-k="expect" value="${esc((c.expect || []).map((e) => [].concat(e).join(' or ')).join(', '))}" placeholder="63-683.24E, 63-681"></div>
+  <div class="row" style="align-self:end;justify-content:flex-end"><button class="btn sm danger" data-remove>Remove</button></div>
+  <div class="field"><label>Must mention</label><textarea class="mono" data-k="mustInclude" rows="1">${esc((c.mustInclude || []).join('\n'))}</textarea></div>
+  <div class="field"><label>Must not say</label><textarea class="mono" data-k="mustNot" rows="1">${esc((c.mustNot || []).join('\n'))}</textarea></div>
+</div>`;
+function renderCheckJob(j) {
+  const [cls, label] = JOB_PILL[j.state] || JOB_PILL.idle;
+  const result = j.state === 'done' && j.total ? `<span class="pill ${j.ok ? 'ok' : 'bad'}">${j.passed} of ${j.total} passed</span>` : `<span class="pill ${cls}">${label}</span>`;
+  $('#chk-pill').innerHTML = result;
+  $('#chk-msg').textContent = jobBusy(j) && j.progress?.total ? `Asked ${j.progress.done} of ${j.progress.total} questions…` : jobLine(j);
+  $('#chk-run').disabled = jobBusy(j);
+  $('#chk-run').textContent = jobBusy(j) ? 'Running…' : 'Run checks now';
+}
+function renderRuns(runs) {
+  $('#chk-runs').innerHTML = runs.length ? `<table><thead><tr><th>When</th><th>Result</th><th>Model</th><th>Started by</th></tr></thead><tbody>${runs.map((r) => `<tr class="click" data-run="${esc(r.id)}" tabindex="0"><td>${fmtDate(r.startedAt)}</td><td><span class="pill ${r.share >= 0.8 ? 'ok' : 'bad'}">${r.passed} of ${r.total} (${Math.round(r.share * 100)}%)</span></td><td class="hint">${esc(r.model || '')}</td><td class="hint">${esc(r.by === 'schedule' ? 'Weekly' : r.by)}</td></tr>`).join('')}</tbody></table>` : '<p class="hint">No runs yet. The first weekly run is Monday morning, or click <strong>Run checks now</strong>.</p>';
+}
+function watchChecks() {
+  poll('checks', async () => {
+    const { job } = await api('GET', '/admin/checks/job');
+    renderCheckJob(job);
+    if (jobBusy(job)) return true;
+    if (job.state === 'done') { loaders.checks(); toast(`Answer check finished: ${job.message}`); }
+    return false;
+  }, 8000);
+}
+loaders.checks = async () => {
+  const r = await api('GET', '/admin/checks');
+  checksForms = r.forms; $('#chk-pass').textContent = `${Math.round(r.passShare * 100)}%`;
+  renderCheckJob(r.job); renderRuns(r.runs);
+  $('#chk-questions').innerHTML = r.questions.map(chkRow).join('');
+  $('#chk-q-sum').textContent = `${r.questions.length} questions: click to view or edit`;
+  if (jobBusy(r.job)) watchChecks();
+};
+$('#chk-add').addEventListener('click', () => { $('#chk-q-wrap').open = true; $('#chk-questions').insertAdjacentHTML('beforeend', chkRow()); $('#chk-questions .q-row:last-child textarea').focus(); });
+$('#chk-questions').addEventListener('click', (e) => { if (e.target.closest('[data-remove]')) e.target.closest('.q-row').remove(); });
+$('#chk-save').addEventListener('click', async (e) => {
+  const lines = (v) => v.split('\n').map((x) => x.trim()).filter(Boolean);
+  const questions = $$('#chk-questions .q-row').map((row) => ({
+    q: $('[data-k=q]', row).value.trim(), form: $('[data-k=form]', row).value,
+    expect: $('[data-k=expect]', row).value.split(',').map((x) => x.trim()).filter(Boolean),
+    mustInclude: lines($('[data-k=mustInclude]', row).value), mustNot: lines($('[data-k=mustNot]', row).value)
+  }));
+  e.target.disabled = true;
+  try { const r = await api('PUT', '/admin/checks/questions', { questions }); $('#chk-questions').innerHTML = r.questions.map(chkRow).join(''); toast(`Saved ${r.questions.length} questions.`); } catch (err) { fail(err); } finally { e.target.disabled = false; }
+});
+$('#chk-run').addEventListener('click', async () => {
+  if (!await ask('Ask all the questions now? It takes about 5–10 minutes and costs about $1–2 in AI usage. Save any question changes first.')) return;
+  try { const { job } = await api('POST', '/admin/checks/run'); renderCheckJob(job); watchChecks(); toast('Running. You can leave this page.'); } catch (e) { fail(e); }
+});
+async function openRun(id) {
+  try {
+    const { run } = await api('GET', `/admin/checks/runs/${encodeURIComponent(id)}`);
+    const items = run.results.map((r) => `<div style="border-bottom:1px solid var(--line);padding:12px 0">
+      <div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:nowrap"><strong style="font-size:14px">${esc(r.q)}</strong>${r.ok ? '<span class="pill ok">Passed</span>' : '<span class="pill bad">Failed</span>'}</div>
+      <div class="hint">${esc(FORM_LABEL[r.form] || r.form)}${r.secs ? ` · ${r.secs}s` : ''}${r.cited?.length ? ` · cited ${esc(r.cited.join(', '))}` : ''}</div>
+      ${r.problems?.length ? `<div class="err" style="margin-top:4px">${esc(r.problems.join('; '))}</div>` : ''}
+      ${r.answer ? `<details style="margin-top:6px"><summary style="font-size:13px">Ranger's answer</summary><div style="white-space:pre-wrap;font-size:13.5px;line-height:1.55;margin-top:6px">${esc(r.answer)}</div></details>` : ''}
+    </div>`).join('');
+    openDrawer(`Answer check, ${fmtDate(run.startedAt)}`, `<p class="hint">${run.passed} of ${run.total} passed · ${esc(run.model || '')}</p>${items}`);
+  } catch (e) { fail(e); }
+}
+$('#chk-runs').addEventListener('click', (e) => { const t = e.target.closest('[data-run]'); if (t) openRun(t.dataset.run); });
+$('#chk-runs').addEventListener('keydown', (e) => { const t = e.target.closest('[data-run]'); if (t && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openRun(t.dataset.run); } });
+
+/* ================= SOURCE + DRAWER ================= */
+function openDrawer(title, html) {
+  $('#overlay').innerHTML = `<div class="scrim" data-close></div><aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="dr-title"><header><h2 id="dr-title">${esc(title)}</h2><button class="icon-btn" data-close aria-label="Close">✕</button></header><div class="body">${html}</div></aside>`;
+  $('#overlay [data-close].icon-btn').focus();
+}
+$('#overlay').addEventListener('click', (e) => { if (e.target.closest('[data-close]')) $('#overlay').innerHTML = ''; });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') $('#overlay').innerHTML = ''; });
+document.addEventListener('click', async (e) => {
+  const c = e.target.closest('.cite[data-cite]'); if (!c) return;
+  try {
+    const r = await fetch(`${PUBLIC_API}/source?id=${encodeURIComponent(c.dataset.cite)}`);
+    if (!r.ok) throw new Error('Couldn’t load that section.');
+    const s = await r.json();
+    openDrawer(s.heading && !s.cite.endsWith(s.heading) ? `${s.cite} — ${s.heading}` : s.cite, `<p class="hint">${esc(s.source || '')}</p>${s.text.split(/\n{2,}/).map((p) => `<p style="line-height:1.6">${esc(p)}</p>`).join('')}${s.url ? `<p><a href="${esc(s.url)}" target="_blank" rel="noopener">${/^(OMAG website|Website)/.test(s.source || '') ? 'Open the web page ↗' : 'Official source ↗'}</a></p>` : ''}`);
+  } catch (err) { toast(err.message); }
+});
+
+/* ================= ADMINS ================= */
+const ADM_STATUS = {
+  FORCE_CHANGE_PASSWORD: ['Invited', 'warn', 'Hasn’t signed in yet'],
+  CONFIRMED: ['Active', 'ok', ''],
+  RESET_REQUIRED: ['Password reset sent', 'warn', 'Needs to use “Forgot password?”'],
+  EXTERNAL_PROVIDER: ['Active', 'ok', ''],
+  UNCONFIRMED: ['Invited', 'warn', '']
+};
+function renderAdmins(r) {
+  const rows = r.admins;
+  $('#adm-table').innerHTML = `<table><thead><tr><th>Admin</th><th>Status</th><th>Two-step</th><th></th></tr></thead><tbody>${rows.map((u) => {
+    const [label, tone, note] = !u.enabled ? ['Turned off', 'muted', 'Can’t sign in'] : ADM_STATUS[u.status] || [u.status, 'muted', ''];
+    const invited = u.status === 'FORCE_CHANGE_PASSWORD';
+    const expired = invited && u.updatedAt && Date.now() - new Date(u.updatedAt) > 7 * 86400000;
+    const id = esc(u.username);
+    return `<tr>
+      <td><strong>${esc(u.email)}</strong>${u.you ? ' <span class="pill muted">You</span>' : ''}<div class="hint">Added ${fmtDate(u.createdAt)}</div></td>
+      <td><span class="pill ${expired ? 'bad' : tone}">${expired ? 'Invite expired' : label}</span>${note && !expired ? `<div class="hint" style="margin-top:3px">${note}</div>` : ''}</td>
+      <td>${u.mfa === true ? '<span class="pill ok">On</span>' : u.mfa === false ? '<span class="pill muted">Off</span>' : ''}</td>
+      <td style="text-align:right"><div class="row" style="justify-content:flex-end;gap:6px">${u.you ? '' : `
+        ${u.mfa ? `<button class="btn sm" data-adm="reset-mfa" data-id="${id}">Reset two-step</button>` : ''}
+        ${u.enabled ? `<button class="btn sm" data-adm="resend" data-id="${id}">${invited ? 'Resend invite' : 'Reset password'}</button>` : ''}
+        <button class="btn sm" data-adm="${u.enabled ? 'disable' : 'enable'}" data-id="${id}">${u.enabled ? 'Turn off' : 'Turn on'}</button>
+        <button class="btn sm danger" data-adm="remove" data-id="${id}">Remove</button>`}</div></td>
+    </tr>`;
+  }).join('')}</tbody></table>`;
+  admins = rows;
+}
+let admins = [];
+loaders.admins = async () => { renderAdmins(await api('GET', '/admin/admins')); loadMfa(); };
+
+/* ---- your own two-step sign-in (authenticator app) ---- */
+/** Calls Cognito with your access token, refreshing it once if it has expired. */
+async function withAccess(target, body) {
+  try { return await cognito(target, { ...body, AccessToken: tok.access }); }
+  catch (e) {
+    if (e.type !== 'NotAuthorizedException' || !(await refreshToken())) throw e;
+    return cognito(target, { ...body, AccessToken: tok.access });
+  }
+}
+async function loadMfa() {
+  $('#mfa-setup').hidden = true;
+  const status = $('#mfa-status'), actions = $('#mfa-actions');
+  actions.innerHTML = '';
+  if (AUTH.local) { status.textContent = 'Two-step sign-in is set up on the live admin panel, not in local mode.'; return; }
+  if (!tok.access && !(await refreshToken())) { status.textContent = 'Sign out and back in to manage two-step sign-in.'; return; }
+  try {
+    const u = await withAccess('GetUser', {});
+    const on = (u.UserMFASettingList || []).includes('SOFTWARE_TOKEN_MFA');
+    const req = AUTH.mfaRequired;
+    status.innerHTML = on
+      ? `<span class="pill ok">Two-step sign-in is on</span><br>You enter a code from your authenticator app after your password.${req ? ' It’s required for every admin. If you get a new phone, click <strong>Move to a new phone</strong> while you still have the old one, or ask another admin to reset yours.' : ''}`
+      : '<span class="pill warn">Two-step sign-in is off</span><br>Admins can read every member conversation. Turn this on so a leaked password isn’t enough to get in.';
+    actions.innerHTML = on ? (req ? '<button class="btn sm" id="mfa-on">Move to a new phone</button>' : '<button class="btn sm" id="mfa-off">Turn off</button>') : '<button class="btn primary" id="mfa-on">Set up two-step sign-in</button>';
+  } catch (e) { status.textContent = 'Couldn’t check two-step sign-in: ' + e.message; }
+}
+$('#mfa-actions').addEventListener('click', async (e) => {
+  if (e.target.id === 'mfa-on') {
+    try {
+      const a = await withAccess('AssociateSoftwareToken', {});
+      await showQr($('#mfa-qr'), a.SecretCode, tok.email || '');
+      $('#mfa-setup').hidden = false; $('#mfa-actions').innerHTML = ''; $('#mfa-code').value = ''; $('#mfa-code').focus();
+    } catch (err) { toast(err.message); }
+  }
+  if (e.target.id === 'mfa-off') {
+    if (!await ask('Turn off two-step sign-in? You’ll sign in with just your password.')) return;
+    try { await withAccess('SetUserMFAPreference', { SoftwareTokenMfaSettings: { Enabled: false, PreferredMfa: false } }); toast('Two-step sign-in is off.'); loaders.admins(); } catch (err) { toast(err.message); }
+  }
+});
+$('#mfa-cancel').addEventListener('click', loadMfa);
+$('#mfa-verify').addEventListener('click', async () => {
+  const btn = $('#mfa-verify'); btn.disabled = true;
+  try {
+    await withAccess('VerifySoftwareToken', { UserCode: $('#mfa-code').value.trim(), FriendlyDeviceName: 'Ranger admin' });
+    await withAccess('SetUserMFAPreference', { SoftwareTokenMfaSettings: { Enabled: true, PreferredMfa: true } });
+    toast('Two-step sign-in is on. Next time, you’ll enter a code from the app after your password.');
+    loaders.admins();
+  } catch (err) { toast(err.message); } finally { btn.disabled = false; }
+});
+$('#adm-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = $('#adm-email').value.trim(); if (!email) return;
+  if (!/@omag\.org$/i.test(email) && !await ask(`${email} isn't an omag.org address. Admins can read every member conversation. Invite them anyway?`, { ok: 'Invite anyway' })) return;
+  const btn = $('#adm-invite'); btn.disabled = true;
+  try { const r = await api('POST', '/admin/admins', { email }); renderAdmins(r); $('#adm-email').value = ''; toast(r.message); } catch (err) { fail(err); } finally { btn.disabled = false; }
+});
+$('#adm-table').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-adm]'); if (!b) return;
+  const u = admins.find((x) => x.username === b.dataset.id); if (!u) return;
+  const act = b.dataset.adm;
+  const question = {
+    resend: u.status === 'FORCE_CHANGE_PASSWORD' ? `Send ${u.email} a new invitation? Their old temporary password stops working.` : `Email ${u.email} a password-reset code? Their current password stops working until they choose a new one.`,
+    disable: `Turn off ${u.email}'s access? They'll be signed out within a minute. You can turn it back on later.`,
+    enable: null,
+    'reset-mfa': `Turn off two-step sign-in for ${u.email}? Do this only if they lost or replaced their phone, and you've confirmed it's really them. ${AUTH.mfaRequired ? 'At their next sign-in they’ll scan a new code with their authenticator app.' : 'They’ll sign in with just their password and should set it up again.'}`,
+    remove: `Remove ${u.email}? Their account is deleted; to add them back, invite them again.`
+  }[act];
+  if (question && !await ask(question)) return;
+  b.disabled = true;
+  try {
+    const path = act === 'remove' ? ['DELETE', `/admin/admins/${encodeURIComponent(u.username)}`] : ['POST', `/admin/admins/${encodeURIComponent(u.username)}/${act}`];
+    const r = await api(...path); renderAdmins(r); toast(r.message);
+  } catch (err) { fail(err); b.disabled = false; }
+});
+
+/* ================= START ================= */
+async function startApp() {
+  $('#login').hidden = true; $('#app').hidden = false;
+  $('#side-icon').innerHTML = `<span style="width:38px;height:38px;display:inline-flex">${ICON(true)}</span>`;
+  $('#dev-banner').hidden = !AUTH.local;
+  try {
+    const me = await api('GET', '/admin/me');
+    $('#who').textContent = me.dev ? 'Local mode' : me.email;
+    AUTH.mfaRequired = !!me.mfaRequired;
+    $('#signout').hidden = !!me.dev;
+  } catch (e) { return fail(e); }
+  api('GET', '/admin/contacts').then(({ contacts }) => {
+    const recent = contacts.filter((c) => Date.now() - new Date(c.at) < 7 * 86400000).length;
+    $('#msg-count').hidden = !recent; $('#msg-count').textContent = recent;
+  }).catch(() => {});
+  const start = location.hash.slice(1).replace(/^overview$/, 'analytics');
+  go(loaders[start] ? start : 'analytics');
+}
+
+(async function init() {
+  document.head.insertAdjacentHTML('beforeend', `<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${encodeURIComponent(ICON())}">`);
+  if (!API) { document.body.innerHTML = '<div class="login"><div class="card"><h1>Not connected</h1><p class="hint">Set apiUrl in web/config.js.</p></div></div>'; return; }
+  try {
+    AUTH = await (await fetch(PUBLIC_API + '/auth-config')).json();
+  } catch {
+    document.body.innerHTML = '<div class="login"><div class="card"><h1>Can’t reach Ranger</h1><p class="hint">The API isn’t responding. Check that the backend is deployed.</p></div></div>'; return;
+  }
+  if (AUTH.local) return startApp();
+  if (!AUTH.userPoolId) { showLogin('Admin sign-in isn’t set up yet. Redeploy the backend with an AdminEmail.'); return; }
+  if (tok.id || (await refreshToken())) startApp(); else showLogin();
+})();
+})();
+</script>
+</body>
+</html>

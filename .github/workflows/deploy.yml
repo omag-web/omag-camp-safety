@@ -1,0 +1,168 @@
+# Deploys the backend (backend/template.yaml → the ranger-camp-safety stack) whenever backend code changes on main,
+# or by hand from the Actions tab (Deploy backend → Run workflow).
+# AWS access comes from the ranger-camp-safety-github-deploy role (deploy/github-deploy-role.yaml); no keys are stored.
+name: Deploy backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '!backend/data/**'   # the monthly library rebuild doesn't need a deploy; Ranger picks it up itself
+      - '!backend/eval/**'
+      - 'knowledge/scripts/**'   # the worker image includes the library builder
+      - '.dockerignore'
+  workflow_dispatch:
+    inputs:
+      site_domain:
+        description: 'Only to set or change Ranger''s web address, e.g. campsafety.omag.org. Leave blank to keep the current one.'
+        required: false
+        default: ''
+      hosted_zone_id:
+        description: 'Route 53 hosted zone ID for that domain (e.g. Z0123456789ABC). Leave blank to keep the current one.'
+        required: false
+        default: ''
+      admin_email:
+        description: 'First deploy only: your email, for the admin panel invite. Leave blank afterwards.'
+        required: false
+        default: ''
+      contact_email:
+        description: 'First deploy only: who gets "Talk to OMAG" messages and alarms. Leave blank afterwards.'
+        required: false
+        default: ''
+
+permissions:
+  id-token: write   # to get the short-lived AWS credentials
+  contents: read
+
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: false
+
+env:
+  STACK: ranger-camp-safety
+  AWS_REGION: us-east-1
+  ROLE_ARN: arn:aws:iam::237264540272:role/ranger-camp-safety-github-deploy
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60   # the first run with a SiteDomain waits for the certificate and CloudFront
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Test (nothing deploys if a test fails)
+        run: npm test
+
+      - name: Build the statute library (first deploy only)
+        # Ranger ships with the library in backend/data/library.json. A brand-new repo doesn't have
+        # one yet, so build it from knowledge/sources.json before packaging. After the first deploy,
+        # the admin panel rebuilds it in AWS.
+        working-directory: .
+        run: |
+          if [ -f backend/data/library.json ]; then echo "Library present."; exit 0; fi
+          sudo apt-get update -q && sudo apt-get install -y -q poppler-utils
+          node knowledge/scripts/build-library.mjs
+
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Keep the stack's current settings
+        env:
+          IN_SITE_DOMAIN: ${{ inputs.site_domain }}
+          IN_ZONE: ${{ inputs.hosted_zone_id }}
+          IN_ADMIN: ${{ inputs.admin_email }}
+          IN_CONTACT: ${{ inputs.contact_email }}
+        # Your answers to `sam deploy --guided` (emails, limits, model...) live in the stack, not in
+        # the repo. Read them back so this deploy never resets them. New parameters use their defaults.
+        run: |
+          # On the very first deploy there is no stack yet: start from the template's defaults.
+          aws cloudformation describe-stacks --stack-name "$STACK" --query 'Stacks[0].Parameters' --output json > /tmp/current.json 2>/dev/null || { echo "No stack yet; first deploy."; echo '[]' > /tmp/current.json; }
+          node --input-type=module -e '
+            import { readFileSync, writeFileSync } from "node:fs";
+            const current = JSON.parse(readFileSync("/tmp/current.json", "utf8"));
+            const template = readFileSync("template.yaml", "utf8");
+            const out = current
+              .filter((p) => p.ParameterValue !== "" && new RegExp(`^  ${p.ParameterKey}:`, "m").test(template))
+              .map((p) => `${p.ParameterKey}="${p.ParameterValue.replace(/"/g, "")}"`);
+            // Values typed into "Run workflow" replace the stored ones.
+            const typed = {
+              SiteDomain: (process.env.IN_SITE_DOMAIN || "").trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, ""),
+              HostedZoneId: (process.env.IN_ZONE || "").trim().toUpperCase().replace(/^\/?HOSTEDZONE\//, "")
+            };
+            const emails = { AdminEmail: (process.env.IN_ADMIN || "").trim().toLowerCase(), ContactEmail: (process.env.IN_CONTACT || "").trim().toLowerCase() };
+            for (const [k, v] of Object.entries(emails)) {
+              if (!v) continue;
+              if (!/^[^\s@"]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$/.test(v)) { console.error(`That ${k} doesn’t look like an email: ${v}`); process.exit(1); }
+              typed[k] = v;
+            }
+            for (const [k, v] of Object.entries(typed)) {
+              if (!v) continue;
+              if (!emails[k] && !/^[A-Za-z0-9.\-]+$/.test(v)) { console.error(`That ${k} doesn’t look right: ${v}`); process.exit(1); }
+              const i = out.findIndex((x) => x.startsWith(k + "="));
+              if (i >= 0) out.splice(i, 1);
+              out.push(`${k}="${v}"`);
+            }
+            writeFileSync("/tmp/overrides.txt", out.join(" "));
+            console.log("Keeping:", current.map((p) => p.ParameterKey).join(", "));
+          '
+
+      - name: Build
+        run: sam build
+
+      - name: Deploy
+        run: |
+          OVR=$(cat /tmp/overrides.txt)
+          sam deploy \
+            --stack-name "$STACK" \
+            --region "$AWS_REGION" \
+            --resolve-s3 \
+            --resolve-image-repos \
+            --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            ${OVR:+--parameter-overrides $OVR}
+
+      - name: Check Ranger is answering
+        run: |
+          URL=$(aws cloudformation describe-stacks --stack-name "$STACK" --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text)
+          for i in 1 2 3 4 5; do
+            if curl -fsS "${URL%/}/health"; then echo; echo "Ranger is up."; exit 0; fi
+            sleep 10
+          done
+          echo "Ranger's health check failed after deploying." >&2
+          exit 1
+
+      - name: Give the admin panel its starting source list (first deploy only)
+        # After this, the statute library's sources are edited in the admin panel, never overwritten here.
+        working-directory: .
+        run: |
+          BUCKET=$(aws cloudformation describe-stacks --stack-name "$STACK" --query "Stacks[0].Outputs[?OutputKey=='DataBucketName'].OutputValue" --output text)
+          if aws s3api head-object --bucket "$BUCKET" --key published/sources.json >/dev/null 2>&1; then
+            echo "The admin panel already has a source list; leaving it alone."
+          else
+            aws s3 cp knowledge/sources.json "s3://$BUCKET/published/sources.json" --content-type application/json --only-show-errors
+            echo "Copied knowledge/sources.json to the admin panel."
+          fi
+
+      - name: Publish the web pages (once Ranger has its own web address)
+        working-directory: .
+        run: .github/scripts/publish-site.sh
