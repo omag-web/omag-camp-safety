@@ -25,8 +25,8 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Pt, RGBColor, Inches
 
-NAVY = RGBColor(0x16, 0x32, 0x4F)
-GOLD = RGBColor(0x9A, 0x74, 0x10)
+NAVY = RGBColor(0x1E, 0x3A, 0x2F)   # Ranger forest
+GOLD = RGBColor(0xB0, 0x5E, 0x12)   # Ranger amber (darkened for print)
 GREY = RGBColor(0x55, 0x5F, 0x6B)
 DRAFT = 'DRAFT pending municipal and applicable external review'
 OUT = Path(__file__).with_name('ranger-camp-safety-templates.zip')
@@ -88,7 +88,7 @@ def box(d, text):
     t = d.add_table(rows=1, cols=1)
     t.alignment = WD_TABLE_ALIGNMENT.CENTER
     c = t.rows[0].cells[0]
-    shade(c, 'FFF6DD')
+    shade(c, 'FDF1E3')
     c.paragraphs[0].add_run(text).font.size = Pt(9.5)
     d.add_paragraph()
 
@@ -145,7 +145,7 @@ def table(d, headers, rows, widths=None):
     t.style = 'Table Grid'
     for i, h in enumerate(headers):
         c = t.rows[0].cells[i]
-        shade(c, 'E7EDF3')
+        shade(c, 'E9F2EC')
         run = c.paragraphs[0].add_run(h)
         run.bold = True
         run.font.size = Pt(9.5)
