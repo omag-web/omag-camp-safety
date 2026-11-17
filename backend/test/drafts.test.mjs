@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import PizZip from 'pizzip';
-import { validateDraft, resolveCitations, draftToText, draftToDocx, draftFilename, sampleText } from '../src/drafts.mjs';
+import { validateDraft, resolveCitations, draftToText, draftToDocx, draftFilename } from '../src/drafts.mjs';
 import { runTool } from '../src/tools.mjs';
 import { runAgent, toConverseMessages } from '../src/agent.mjs';
 import { buildSystemPrompt } from '../src/prompt.mjs';
@@ -47,24 +47,22 @@ test('write_document tool hands the draft to the turn', () => {
   assert.equal(drafts.length, 1);
 });
 
-test('get_sample is not offered yet, but the code is ready for OMAG samples', async () => {
-  // No templates or loadSample → only research tools and write_document.
+test('get_sample is offered only when OMAG has sample documents switched on', async () => {
+  // No samples → only research tools and write_document.
   let tools;
-  await runAgent({ history: [{ role: 'user', text: 'hi' }], library, turn: async (a) => { tools = a.tools; return { stopReason: 'end_turn', usage: {}, content: [{ text: 'ok' }] }; } });
+  const turn = async (a) => { tools = a.tools; return { stopReason: 'end_turn', usage: {}, content: [{ text: 'ok' }] }; };
+  await runAgent({ history: [{ role: 'user', text: 'hi' }], library, turn });
   assert.deepEqual(tools.map((t) => t.toolSpec.name), ['search_law', 'get_sections', 'write_document']);
 
-  const deps = {
-    getTemplate: async () => ({ title: 'Lightning Plan', enabled: true, variants: { all: { key: 'k' } }, fields: [{ key: 'camp_name', label: 'Camp name' }] }),
-    pickVariant: () => ({ variant: 'all' }),
-    getBlob: async () => Buffer.from('x'),
-    extractText: async () => 'The {{camp_name}} stops activities.{{#has_pool}} Clear the pool.{{/has_pool}}'
-  };
-  const s = await sampleText('lightning', 'camp', deps);
-  assert.equal(s.text, 'The [Camp name] stops activities. Clear the pool.');
-  const r = await runTool('get_sample', { template_id: 'lightning' }, library, { templates: [{ id: 'lightning' }], loadSample: (id) => sampleText(id, 'camp', deps) });
+  const samples = [{ id: 'lightning', title: 'Lightning Plan', description: 'Lightning' }];
+  const loadSample = async (id) => { if (id !== 'lightning') throw new Error('No such sample'); return { title: 'Lightning Plan', text: 'Camp Example stops activities when thunder is heard.', truncated: false }; };
+  await runAgent({ history: [{ role: 'user', text: 'hi' }], library, turn, samples, loadSample });
+  assert.deepEqual(tools.map((t) => t.toolSpec.name), ['search_law', 'get_sections', 'write_document', 'get_sample']);
+
+  const r = await runTool('get_sample', { sample_id: 'lightning' }, library, { samples, loadSample });
   assert.equal(r.result.title, 'Lightning Plan');
   assert.match(r.result.how_to_use, /fresh/);
-  const missing = await runTool('get_sample', { template_id: 'nope' }, library, { templates: [], loadSample: () => {} });
+  const missing = await runTool('get_sample', { sample_id: 'nope' }, library, { samples: [], loadSample });
   assert.match(missing.result.error, /No sample/);
 });
 
@@ -72,7 +70,7 @@ test('the prompt interviews for camp details before writing', () => {
   const p = buildSystemPrompt({ form: 'camp', city: 'City of Ada' });
   assert.match(p, /# Writing documents/);
   for (const topic of [/day camp or overnight/, /staff-to-camper ratios/, /pool, lake or river/, /who makes emergency calls/, /health, allergies and medications/, /HB 1675/, /two to four/, /\[brackets\]/, /Never invent facts, names, phone numbers, addresses, dates, amounts/]) assert.match(p, topic);
-  assert.doesNotMatch(p, /offer_document|get_sample/, 'no fill-in tool and no samples yet');
+  assert.doesNotMatch(p, /offer_document|get_sample/, 'no fill-in tool, and no samples switched on');
 });
 
 test('the current draft goes back to the model with the member’s message', () => {

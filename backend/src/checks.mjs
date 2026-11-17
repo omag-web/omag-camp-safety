@@ -8,6 +8,7 @@ import { blobs, kv } from './storage.mjs';
 import { runAgent } from './agent.mjs';
 import { getConfig } from './config.mjs';
 import { getLibrary } from './library.mjs';
+import { samplesFor, readSample } from './samples.mjs';
 import { redact } from './privacy.mjs';
 
 export const QUESTIONS_KEY = 'published/check-questions.json';
@@ -91,6 +92,7 @@ export async function runChecks({ questions, concurrency = 10, deadline = Date.n
       history: [{ role: 'user', text: redact(c.q).text }],
       form: c.form, library, guidance: cfg.guidance,
       modelId: cfg.settings.modelId, fallbackModelId: cfg.settings.fallbackModelId,
+      samples: await samplesFor(c.form).catch(() => []), loadSample: (id) => readSample(id, c.form),
       ...(turn ? { turn } : {})
     });
     return { text: r.text, cited: (r.citations || []).map((x) => x.id), model: r.model };

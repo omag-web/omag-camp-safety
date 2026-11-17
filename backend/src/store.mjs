@@ -85,12 +85,12 @@ export async function checkAttachLimit(ip) {
 }
 
 /** One row per document built (no answers are stored, only which document, for whom and when). */
-export async function logDocument({ templateId, title, form, city, browserId, ip, blanks, conversationId }) {
+export async function logDocument({ kind, title, form, city, browserId, ip, blanks, conversationId }) {
   const at = new Date().toISOString();
   await kv.put({
     pk: `DOCFILL#${day()}`, sk: `${at}#${randomBytes(3).toString('hex')}`,
     gsi1pk: `DOCFILLS#${day()}`, gsi1sk: at,
-    type: 'docfill', at, templateId, title, form: form || undefined, city: city ? String(city).slice(0, 120) : undefined,
+    type: 'docfill', at, kind, title, form: form || undefined, city: city ? String(city).slice(0, 120) : undefined,
     browser: hash(browserId), ip: hash(ip), blanks: blanks || 0, conversationId: conversationId || undefined,
     expiresAt: epoch(await RETENTION_DAYS())
   });

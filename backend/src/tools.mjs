@@ -39,7 +39,7 @@ const MAX_SECTION_CHARS = 9000;
 /**
  * Runs a tool call. Returns { result, status, ids } where ids are sections the model has now seen
  * (a Promise for get_sample, which reads a file).
- * ctx: { templates, seen, drafts, loadSample }
+ * ctx: { samples, seen, drafts, loadSample }
  */
 export function runTool(name, input, library, ctx = {}) {
   if (name === 'write_document') {
@@ -58,9 +58,9 @@ export function runTool(name, input, library, ctx = {}) {
       }
     };
   }
-  // Not offered yet (see drafts.mjs): reads an OMAG sample as a guide.
+  // Reads one of OMAG's sample documents as a guide (offered only when samples are switched on).
   if (name === 'get_sample') {
-    const t = (ctx.templates || []).find((x) => x.id === String(input?.template_id || ''));
+    const t = (ctx.samples || []).find((x) => x.id === String(input?.sample_id || ''));
     if (!t || !ctx.loadSample) return { status: 'Looking for an OMAG sample', ids: [], result: { error: 'No sample with that id. Use an id from the list, or write the document without one.' } };
     return ctx.loadSample(t.id).then(
       (s) => ({ status: `Reading OMAG’s sample ${s.title}`, ids: [], result: { title: s.title, text: s.text, ...(s.truncated ? { truncated: true } : {}), how_to_use: 'This is a guide to what the document should cover. Write the member’s document fresh, in your own words, for their camp; don’t copy it with blanks filled in.' } }),

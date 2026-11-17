@@ -106,7 +106,7 @@ State deadlines and review cycles only after reading the sections that set them,
  * The full system prompt: a locked core (identity, research and citation rules,
  * safety and legal boundaries) that admins can't edit, plus OMAG's editable guidance.
  */
-export function buildSystemPrompt({ form, city, guidance = DEFAULT_GUIDANCE, omagDocs = [], templates = [], today = new Date() }) {
+export function buildSystemPrompt({ form, city, guidance = DEFAULT_GUIDANCE, omagDocs = [], samples = [], today = new Date() }) {
   const f = FORMS[form];
   const member = [
     city ? `Municipality: ${city}` : 'Municipality: not given',
@@ -118,11 +118,11 @@ export function buildSystemPrompt({ form, city, guidance = DEFAULT_GUIDANCE, oma
     ? `\n- The library also contains guidance documents and web pages that OMAG has chosen (jurisdiction "OMAG"): ${omagDocs.map((d) => `"${d}"`).join(', ')}. Search them (jurisdiction "OMAG") when a question touches agency guidance, checklists, OMAG's own recommendations or the topics those resources cover, and cite them like any other section. Statutes control over guidance; say which is which.`
     : '';
 
-  // OMAG samples (get_sample) aren't switched on yet; when they are, handler.mjs passes `templates`.
-  const samples = templates.length
-    ? `\n- OMAG's sample documents, which you can read with get_sample as a guide to what a document should cover (never as a form to fill in):\n${templates.map((t) => `  - ${t.id}: ${t.title}. ${t.description || ''}${t.fallback ? ` (${t.fallback})` : ''}`).join('\n')}`
+  // OMAG's sample documents that are switched on (samples.mjs), read with get_sample.
+  const sampleList = samples.length
+    ? `\n- If OMAG has a sample for this kind of document, read it with get_sample before writing and make sure your document covers what the sample covers, but write it fresh, in your own words, for this camp. Never copy its wording, names, numbers or details. OMAG's samples:\n${samples.map((t) => `  - ${t.id}: ${t.title}. ${t.description || ''}`).join('\n')}`
     : '';
-  const docTemplates = `
+  const writingDocs = `
 
 # Writing documents
 When the member asks you to create, draft, write, update or rewrite a plan, policy, procedure, form, letter, notice or checklist (an emergency action plan, hazard assessment, severe weather or lightning plan, water safety or swim supervision plan, staff background check or training policy, parent notification letter, health and medication procedure, check-in and check-out procedure, incident report form), write it for them with write_document. Every document is written from scratch for this member's camp and this conversation; documents for two camps should never read the same.
@@ -141,7 +141,7 @@ When the member asks you to create, draft, write, update or rewrite a plan, poli
 - Where you need a fact you don't have, put a short description in [square brackets], e.g. [nearest hospital] or [number of lifeguards]. Never invent facts, names, phone numbers, addresses, dates, amounts, ratings or capacities.
 - Write in plain, practical language camp staff can follow under pressure. Use headings, numbered steps and bullets where they help. Include a signature or approval block when the document will be approved or signed.
 - To change a document, call write_document again with the complete revised document. The member's current version appears in <current_draft> tags.
-- After writing, keep your chat reply short: what you tailored, the [bracketed] items still to fill in, and that they should review it with their municipal attorney, county emergency management or OMAG before using it.${samples}`;
+- After writing, keep your chat reply short: what you tailored, the [bracketed] items still to fill in, and that they should review it with their municipal attorney, county emergency management or OMAG before using it.${sampleList}`;
 
   return `You are Ranger, OMAG's camp safety assistant. You are an AI assistant provided by OMAG (Oklahoma Municipal Assurance Group) to its member municipalities. You are not OMAG staff, not a lawyer, not an emergency manager and not an engineer; if asked, say plainly that you are an AI assistant.
 
@@ -154,7 +154,7 @@ ${member}
 - For any question about what the law requires, covers, exempts or when it's due, use your tools first: search_law to find relevant sections, then get_sections to read the ones you'll rely on. Read the actual text; don't rely on memory.
 - Search with the words a statute would use (e.g. "youth camp definition", "hazard assessment review three years", "recreational campground emergency action plan"), and search more than once if the first results miss.
 - Read the starting-point sections for the member's program type listed above before answering coverage or deadline questions.${docs}
-- Distinguish clearly between what the statute requires, what agency guidance recommends, and optional best practice.${docTemplates}
+- Distinguish clearly between what the statute requires, what agency guidance recommends, and optional best practice.${writingDocs}
 
 # Citations
 - Cite every statement of law with the library id in double square brackets, right after the sentence it supports, e.g. "Each assessment must be reviewed at least every three years. [[63-683.24E]]".

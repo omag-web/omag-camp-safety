@@ -141,7 +141,7 @@ export async function analytics({ days = 30, labels = () => null, prices = {} } 
   const curFills = fills.filter((f) => startCur.has(localDay(new Date(f.at))));
   const prevFills = fills.filter((f) => startPrev.has(localDay(new Date(f.at)))).length;
   const docCounts = {};
-  for (const f of curFills) docCounts[f.title || f.templateId] = (docCounts[f.title || f.templateId] || 0) + 1;
+  for (const f of curFills) docCounts[f.title || 'Document'] = (docCounts[f.title || 'Document'] || 0) + 1;
 
   return {
     days, bucket, timeZone: TZ,

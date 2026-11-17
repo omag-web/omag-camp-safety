@@ -169,8 +169,8 @@ export async function saveSettings(input, by) {
   if ('starters' in input) {
     if (!Array.isArray(input.starters)) throw Object.assign(new Error('Starters must be a list.'), { status: 400 });
     s.starters = input.starters
-      // A document starter opens one template (templateId), or with none, asks which document.
-      .map((x) => ({ kicker: str(x.kicker, 30), text: str(x.text, 160), ...(x.doc ? { doc: true, ...(str(x.templateId, 60) ? { templateId: str(x.templateId, 60) } : {}) } : {}) }))
+      // A "Write a document" starter (doc) asks Ranger to write what its text names.
+      .map((x) => ({ kicker: str(x.kicker, 30), text: str(x.text, 160), ...(x.doc ? { doc: true } : {}) }))
       .filter((x) => x.text)
       .slice(0, 6);
   }
