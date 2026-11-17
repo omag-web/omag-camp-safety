@@ -1,0 +1,23 @@
+name: Temporary price probe (delete after use)
+on: workflow_dispatch
+permissions: { contents: read }
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -sfL https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonBedrock/current/us-east-1/index.json -o b.json
+          ls -la b.json
+          node -e '
+            const j = require("./b.json");
+            const P = Object.values(j.products);
+            const keys = {}; for (const p of P) for (const k of Object.keys(p.attributes)) keys[k] = (keys[k]||0)+1;
+            console.log("ATTR KEYS", JSON.stringify(keys));
+            const hit = P.filter(p => /gpt|openai/i.test(JSON.stringify(p.attributes)));
+            console.log("GPT/OpenAI products:", hit.length);
+            const od = j.terms.OnDemand || {};
+            for (const p of hit.slice(0, 60)) {
+              const t = Object.values(od[p.sku] || {})[0];
+              const d = t ? Object.values(t.priceDimensions)[0] : null;
+              console.log(JSON.stringify({ sku: p.sku, a: p.attributes, usd: d && d.pricePerUnit.USD, unit: d && d.unit, desc: d && d.description }));
+            }'
