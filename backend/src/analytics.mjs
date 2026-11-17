@@ -94,7 +94,8 @@ export async function analytics({ days = 30, labels = () => null, prices = {} } 
   const totals = summarize(cur);
   const previous = summarize(prev);
   const cost = (s) => (prices.in || prices.out)
-    ? Math.round((((s.inputTokens - s.cacheReadTokens * 0.9) / 1e6) * (prices.in || 0) + (s.outputTokens / 1e6) * (prices.out || 0)) * 100) / 100
+    // Cached input is billed at its own (lower) price; without one, assume 10% of the input price.
+    ? Math.round((((s.inputTokens - s.cacheReadTokens) / 1e6) * (prices.in || 0) + (s.cacheReadTokens / 1e6) * (prices.cacheRead || (prices.in || 0) * 0.1) + (s.outputTokens / 1e6) * (prices.out || 0)) * 100) / 100
     : null;
   totals.estimatedCost = cost(totals);
   previous.estimatedCost = cost(previous);

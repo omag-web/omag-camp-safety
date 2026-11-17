@@ -206,7 +206,7 @@ test('analytics: totals, topics, cited sections, cities and comparison period', 
   assert.ok(a.topics.length >= 1);
   assert.ok(a.sections.every((s) => s.cite && s.n >= 1));
   assert.equal(a.totals.estimatedCost, null, 'no cost estimate until prices are set');
-  await call('PUT', '/admin/settings', { body: { priceInputPerM: 1.5, priceOutputPerM: 6 } });
+  await call('PUT', '/admin/settings', { body: { autoPrices: false, priceInputPerM: 1.5, priceOutputPerM: 6 } });
   const b = (await call('GET', '/admin/analytics', { query: { days: '30' } })).json;
   assert.equal(b.series.length, 30);
   assert.equal(typeof b.totals.estimatedCost, 'number');

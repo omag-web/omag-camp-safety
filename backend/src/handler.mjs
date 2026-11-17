@@ -14,7 +14,8 @@
 //   /admin/*                     → instructions, documents, settings, conversations, library
 //   POST /admin/preview          → like /chat, but with the draft instructions
 // Scheduled
-//   { rangerTask: "refresh-library" } from EventBridge → pull the latest statute library and re-read OMAG websites
+//   { rangerTask: "refresh-library" } from EventBridge → pull the latest statute library, re-read OMAG websites,
+//                                     and update token prices from AWS's price list
 //
 // CORS is handled by the Function URL configuration in template.yaml.
 
@@ -25,6 +26,7 @@ import { kv } from './storage.mjs';
 import { requireAdmin, authConfig } from './auth.mjs';
 import { matchAdmin } from './admin.mjs';
 import { refreshWebsites } from './docs.mjs';
+import { refreshPrices } from './pricing.mjs';
 import { checkRateLimit, checkDocLimit, checkAttachLimit, logTurn, logDocument, newTurnId, saveFeedback, saveContact } from './store.mjs';
 import { readAttachment, cleanAttachments } from './attachments.mjs';
 import { memberTemplates, fillTemplate } from './templates.mjs';
@@ -39,6 +41,8 @@ export const handler = awslambda.streamifyResponse(async (event, stream) => {
     console.log('scheduled library refresh', result);
     const sites = await refreshWebsites().catch((e) => { console.error('website refresh failed', e); return []; });
     if (sites.length) console.log('scheduled website refresh', sites);
+    const prices = await refreshPrices().catch((e) => ({ ok: false, message: e.message }));
+    console.log('scheduled price check', prices);
     stream.write(JSON.stringify(result));
     stream.end();
     return;

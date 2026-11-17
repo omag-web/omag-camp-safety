@@ -6,6 +6,7 @@ import { listDocs, createUpload, processDoc, updateDoc, deleteDoc, addWebsite, f
 import { getLibrary, libraryStatus, refreshLibrary, librarySources, checkSources } from './library.mjs';
 import { listTurns, getConversation, listContacts, usageStats } from './store.mjs';
 import { analytics } from './analytics.mjs';
+import { refreshPrices } from './pricing.mjs';
 import { listTemplates, getTemplate, createTemplate, updateTemplate, deleteTemplate, variantUploadUrl, attachVariant, removeVariant, fillTemplate, exportPack, importPack, importUploadUrl, VARIANT_LABEL, FIELD_TYPES, PREFILLS } from './templates.mjs';
 import { blobs } from './storage.mjs';
 import { listAdmins, inviteAdmin, resendAccess, setAdminEnabled, removeAdmin, resetMfa } from './admins.mjs';
@@ -29,7 +30,7 @@ on('GET', '/admin/analytics', async ({ query }) => {
   return analytics({
     days: query.days,
     labels: (id) => lib.get(id)?.cite,
-    prices: { in: cfg.settings.priceInputPerM, out: cfg.settings.priceOutputPerM }
+    prices: { in: cfg.settings.priceInputPerM, out: cfg.settings.priceOutputPerM, cacheRead: cfg.settings.priceCacheReadPerM }
   });
 });
 on('GET', '/admin/analytics/export', async ({ query }) => ({
@@ -81,7 +82,17 @@ on('POST', '/admin/guidance/restore', async ({ body, admin }) => { await restore
 /* settings */
 const settingsExtra = { models: MODELS, privacyDefault: DEFAULT_PRIVACY_NOTICE };
 on('GET', '/admin/settings', async () => ({ settings: (await getConfig({ fresh: true })).settings, ...settingsExtra }));
-on('PUT', '/admin/settings', async ({ body, admin }) => ({ settings: await saveSettings(body || {}, admin.email), ...settingsExtra }));
+on('PUT', '/admin/settings', async ({ body, admin }) => {
+  const before = (await getConfig({ fresh: true })).settings;
+  let settings = await saveSettings(body || {}, admin.email);
+  // New model, or automatic prices just turned on: look the prices up now rather than tomorrow.
+  if (settings.autoPrices !== false && (settings.modelId !== before.modelId || before.autoPrices === false)) {
+    await refreshPrices().catch((e) => console.error('price check failed', e));
+    settings = (await getConfig({ fresh: true })).settings;
+  }
+  return { settings, ...settingsExtra };
+});
+on('POST', '/admin/prices/refresh', async () => ({ result: await refreshPrices(), settings: (await getConfig({ fresh: true })).settings }));
 
 /* who gets Ranger's emails */
 const allLists = async () => Object.fromEntries(await Promise.all(LISTS.map(async (l) => [l, await listRecipients(l)])));

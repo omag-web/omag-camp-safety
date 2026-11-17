@@ -66,9 +66,13 @@ export function defaultSettings() {
     // Used automatically for one answer if the main model is busy, down or retired. '' = no backup.
     fallbackModelId: process.env.FALLBACK_MODEL_ID ?? 'us.openai.gpt-5.6-luna',
     // Bedrock price in US dollars per million tokens, for the cost estimate on the Analytics page.
-    // 0 means "not set": the page shows token counts only.
+    // 0 means "not set": the page shows token counts only. With autoPrices on, pricing.mjs keeps
+    // these current from AWS's public price list (daily, and when the model changes).
+    autoPrices: true,
     priceInputPerM: 0,
     priceOutputPerM: 0,
+    priceCacheReadPerM: 0,
+    priceCheck: null,
     // How long conversations, feedback and messages are kept before DynamoDB deletes them.
     retentionDays: Number(process.env.RETENTION_DAYS || 730)
   };
@@ -177,7 +181,9 @@ export async function saveSettings(input, by) {
       s[k] = n;
     }
   }
-  for (const k of ['priceInputPerM', 'priceOutputPerM']) {
+  if ('autoPrices' in input) s.autoPrices = !!input.autoPrices;
+  for (const k of ['priceInputPerM', 'priceOutputPerM', 'priceCacheReadPerM']) {
+    if (s.autoPrices !== false) continue;   // automatic prices: typed values are ignored
     if (k in input) {
       const n = Number(input[k] || 0);
       if (!Number.isFinite(n) || n < 0 || n > 1000) throw Object.assign(new Error('Prices must be dollars per million tokens, between 0 and 1,000.'), { status: 400 });
