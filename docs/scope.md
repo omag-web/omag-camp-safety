@@ -41,5 +41,5 @@ The new build:
 - [ ] Whether to keep the name "Ranger"
 - [ ] OMAG Legal review of the privacy notice, disclaimer and a few documents Ranger writes
 - [ ] OMAG camp safety sample documents (admin panel → **Sample documents**) for `get_sample` to read as guides
-- [ ] Retention period for conversations (default 2 years, as Pip)
+- [ ] Retention period for conversations (default 18 months, as Pip)
 - [ ] Add implementing rules once the regulating authority adopts them

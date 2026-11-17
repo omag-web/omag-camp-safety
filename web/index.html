@@ -59,7 +59,6 @@ svg{flex:none}
 .title{margin:0;font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (min-width:901px){.topbar{flex-wrap:nowrap}.topbar-left{flex:1 1 0;min-width:0}.topbar-left>div{flex:0 1 auto;min-width:0}.gov-control,.topbar-right{flex:none}}
 .subtitle{font-size:12.5px;color:var(--muted)}
-.demo-pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;background:var(--gold-bg);border:1px solid var(--gold-line);color:var(--gold-ink);font-size:12px;font-weight:600;white-space:nowrap}
 .topbar-right{display:flex;gap:8px;align-items:center}
 .gov-control{display:flex;align-items:center;gap:8px;padding:4px 6px 4px 12px;border-radius:10px;background:var(--accent-bg);border:1px solid var(--accent-line)}
 .gov-control label{font-size:12px;font-weight:700;color:var(--accent-dk);white-space:nowrap;display:flex;align-items:center;gap:6px}
@@ -101,6 +100,28 @@ svg{flex:none}
 .context-line{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
 .context-line .gov{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;background:#f3efe4;border:1px solid var(--line);color:var(--ink-2);font-weight:600}
 .linkish{background:none;border:none;padding:0;color:var(--accent-dk);text-decoration:underline;font-weight:600;font-size:13px}
+.notice{display:flex;gap:12px;padding:12px 16px;border-radius:12px;background:#f5f1e7;border:1px solid var(--line-2);font-size:14px;line-height:1.55;color:var(--ink-2);margin:0 0 20px}
+.notice p{margin:0}.notice p+p{margin-top:4px}
+.notice .link-btn{font-size:inherit}
+.welcome .notice{text-align:left;margin:4px 0 18px}
+.notice-modal p{margin:0 0 10px;font-size:15px;line-height:1.6}
+/* questions Ranger asks (ask_member) */
+.q-card{margin-top:10px;border:1px solid var(--accent-line);background:#fff;border-radius:14px;padding:14px 16px;max-width:560px;box-shadow:0 1px 3px rgba(30,58,47,.08)}
+.q-kicker{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-dk);margin-bottom:6px}
+.q-title{margin:0;font-size:16px;font-weight:700;color:var(--ink);line-height:1.4}
+.q-hint{margin:4px 0 0;font-size:13px;color:var(--muted)}
+.q-card fieldset{border:0;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.q-opt{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;font-size:14.5px;color:var(--ink);background:#fff}
+.q-opt:hover{border-color:var(--accent-line);background:var(--accent-bg)}
+.q-opt input{width:18px;height:18px;margin:0;accent-color:var(--accent);flex:none}
+.q-opt:has(input:checked){border-color:var(--accent);background:var(--accent-bg)}
+.q-other-text,.q-text{width:100%;margin-top:6px;padding:9px 12px;border:1px solid var(--line-2);border-radius:10px;font:inherit;font-size:14.5px}
+.q-other-text:focus,.q-text:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,107,79,.14)}
+.q-submit{width:100%;margin-top:12px;min-height:42px;border-radius:999px}
+.q-card.answered{background:var(--bg);box-shadow:none}
+.q-card.answered .q-opt{cursor:default;opacity:.75}
+.q-card.answered .q-opt:has(input:checked){opacity:1}
+.q-answer{margin-top:8px;font-size:13.5px;color:var(--ink-2)}
 .callout{display:flex;gap:12px;padding:14px 16px;border-radius:12px;background:var(--gold-bg);border:1px solid var(--gold-line);font-size:14px;line-height:1.55;color:#3d3110}
 .callout.legal{background:#f5f1e7;border-color:var(--line-2);color:var(--ink-2)}
 .suggest{display:flex;flex-wrap:wrap;gap:8px}
@@ -320,7 +341,6 @@ h1,h2,h3,.title,.brand-name,.welcome h2,.panel-title,.doc-page h1{font-family:'B
           <h1 class="title" id="conv-title">New conversation</h1>
           <div class="subtitle hide-sm">Oklahoma camp safety law (HB 1675)</div>
         </div>
-        <span class="demo-pill hide-sm" title="Ranger is new. Answers can be wrong; check the cited sections and confirm with county emergency management, your attorney or OMAG.">Beta</span>
       </div>
       <div class="gov-control" id="gov-control">
         <label for="gov-select"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20z"/><path d="M12 11l-3 9h6z"/></svg>Program type</label>
@@ -360,7 +380,7 @@ h1,h2,h3,.title,.brand-name,.welcome h2,.panel-title,.doc-page h1{font-family:'B
             </button>
           </div>
         </div>
-        <p class="disclaimer" id="disclaimer">Answers are general information, not legal advice. For your specific situation, consult your municipal attorney or OMAG Legal Services.</p>
+        <p class="disclaimer" id="disclaimer">Answers and drafts are general information, not legal advice or a compliance determination. Review plans with your municipal attorney, county emergency management and OMAG.</p>
         <p class="disclaimer privacy-note">Please leave out names, ID numbers, medical details and anything that identifies a child. <button type="button" class="link-btn" data-action="privacy">Privacy</button></p>
       </form>
     </div>
@@ -464,7 +484,7 @@ function saveConv() {
 
 /* ============ SITE SETTINGS (edited in the admin panel) ============ */
 const SITE = {
-  welcomeText: "I'm OMAG's AI assistant for the Oklahoma camp safety law (HB 1675). I can help you find which of your facilities and programs may be covered, and write the plans, policies and forms your camp needs. I'll ask about your camp a few questions at a time, then write each document from scratch for you.",
+  welcomeText: "I'm OMAG's AI assistant for the Oklahoma camp safety law (HB 1675). I can help you find which of your facilities and programs may be covered, and write the plans, policies and forms your camp needs. I'll ask about your camp one question at a time, then write each document from scratch for you.",
   starters: [
     { kicker: 'Get started', text: 'Help us find which city facilities and programs might be covered' },
     { kicker: 'Coverage', text: 'Does our parks department summer day camp count as a youth camp?' },
@@ -474,7 +494,7 @@ const SITE = {
   disclaimer: 'Answers and drafts are general information, not legal advice or a compliance determination. Review plans with your municipal attorney, county emergency management and OMAG.',
   contactPhone: '1-800-234-9461',
   privacyNotice: '',
-  retentionDays: 730
+  retentionDays: 548
 };
 async function loadSiteSettings() {
   if (!API) return;
@@ -557,6 +577,7 @@ function finishAnswer(ui, msg) {
   // markers resolve to library ids for the source panel
   ui.answer.querySelectorAll('.cite').forEach((b) => { const c = (msg.citations || []).find((x) => x.marker === b.dataset.cite || x.id === b.dataset.cite); if (c) b.dataset.cite = c.id; });
   if (msg.unread?.length) ui.answer.insertAdjacentHTML('beforeend', `<p class="note-muted">${msg.unread.length === 1 ? 'One reference' : msg.unread.length + ' references'} couldn't be verified against the statute library and ${msg.unread.length === 1 ? 'was' : 'were'} removed.</p>`);
+  if (msg.question) ui.body.appendChild(questionCard(msg));
   if (msg.draft) {
     const box = document.createElement('div');
     box.className = 'block doc-offers';
@@ -576,6 +597,7 @@ async function askLive(q) {
   closeSidebar();
   const att = state.attach && !state.attach.loading ? { name: state.attach.name, text: state.attach.text } : null;
   state.attach = null; renderAttachChip();
+  closeOpenQuestion(q);   // answering by card or by typing both close the open question
   addUser(q, att?.name);
   if (!conv.title) { conv.title = att && /^Please review the attached/.test(q) ? `Review: ${att.name}`.slice(0, 48) : q.length > 48 ? q.slice(0, 46).trim() + '…' : q; $('#conv-title').textContent = conv.title; }
   conv.form = state.form;
@@ -603,7 +625,7 @@ async function askLive(q) {
       body: JSON.stringify({
         conversationId: conv.id, browserId, form: state.form,
         city: state.muniSet ? state.muni : undefined,
-        messages: withDraft(conv.messages.filter((m) => m.role === 'user' || m.role === 'assistant').map(({ role, text, attachments }) => ({ role, text, ...(attachments ? { attachments } : {}) })).slice(-40))
+        messages: withDraft(conv.messages.filter((m) => m.role === 'user' || m.role === 'assistant').map(({ role, text, attachments, question }) => ({ role, text, ...(attachments ? { attachments } : {}), ...(question ? { question } : {}) })).slice(-80))
       })
     });
     if (!res.ok) {
@@ -634,7 +656,7 @@ async function askLive(q) {
     }
     if (raf) cancelAnimationFrame(raf);
     if (!done) throw new Error('The answer was cut off. Please try again.');
-    const msg = { role: 'assistant', text: acc, citations: done.citations, unread: done.unread, turnId: done.turnId, draft: done.draft || undefined };
+    const msg = { role: 'assistant', text: acc, citations: done.citations, unread: done.unread, turnId: done.turnId, draft: done.draft || undefined, question: done.question || undefined };
     finishAnswer(ui, msg);
     conv.messages.push(msg);
     saveConv();
@@ -643,6 +665,8 @@ async function askLive(q) {
     fail(e.message || 'Something went wrong. Please try again.');
   } finally {
     state.busy = false; updateSend(); scrollDown();
+    inner.querySelectorAll('.q-card:not(.answered)').forEach(refreshCard);
+    inner.querySelector('.q-card:not(.answered) input:not([disabled])')?.focus({ preventScroll: true });
   }
 }
 
@@ -694,7 +718,7 @@ function openConv(id) {
   conv = c;
   if (c.form && FORMS[c.form] && c.form !== state.form) { state.form = c.form; renderGov(); }
   started = true; state.docs = {};
-  inner.innerHTML = '';
+  inner.innerHTML = noticeHtml();
   $('#conv-title').textContent = c.title || 'Conversation';
   for (const m of c.messages) {
     if (m.role === 'user') { addUser(m.text, m.attachments?.[0]?.name); continue; }
@@ -704,6 +728,71 @@ function openConv(id) {
   }
   setActive(id);
 }
+
+/* ============ NOTICE (shown at the start of every conversation) ============ */
+function noticeHtml() {
+  return `<div class="notice block" role="note">${ICON.scale}<div><p>${esc(SITE.disclaimer)}</p><p>Please leave out names, ID numbers, medical details and anything that identifies a child. <button type="button" class="link-btn" data-action="privacy">Privacy</button></p></div></div>`;
+}
+/** The legal and privacy notice as a pop-up, each time a new conversation starts. */
+function showNotice() {
+  openModal('Before you start', `<div class="notice-modal"><p>${esc(SITE.disclaimer)}</p><p>Please leave out names, ID numbers, medical details and anything that identifies a child. <button type="button" class="link-btn" data-action="privacy">Read how Ranger handles privacy</button></p></div>`,
+    '<button type="button" class="btn primary" data-action="close-modal" style="min-width:140px">I understand</button>');
+  $('#modal-foot [data-action="close-modal"]').focus();
+}
+
+/* ============ QUESTIONS RANGER ASKS (ask_member) ============ */
+const Q_ICON = '<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></svg>';
+let qSeq = 0;
+function questionCard(msg) {
+  const q = msg.question, n = ++qSeq, answered = msg.answer !== undefined;
+  const type = q.kind === 'multi' ? 'checkbox' : 'radio';
+  const picked = new Set(answered ? splitAnswer(msg.answer) : []);
+  const opts = q.kind === 'text' ? '' : `<fieldset><legend class="sr-only">${esc(q.question)}</legend>${q.options.map((o) => `<label class="q-opt"><input type="${type}" name="q${n}" value="${esc(o)}" ${picked.has(o) ? 'checked' : ''} ${answered ? 'disabled' : ''}> <span>${esc(o)}</span></label>`).join('')}${q.allowOther ? `<label class="q-opt"><input type="${type}" name="q${n}" value="__other" ${answered && [...picked].some((x) => !q.options.includes(x)) ? 'checked' : ''} ${answered ? 'disabled' : ''}> <span>Something else</span></label><input class="q-other-text" type="text" maxlength="300" placeholder="Type your answer" aria-label="Your answer" hidden>` : ''}</fieldset>`;
+  const text = q.kind === 'text' ? `<input class="q-text" type="text" maxlength="300" placeholder="${esc(q.placeholder || 'Type your answer')}" aria-label="${esc(q.question)}" ${answered ? 'disabled' : ''}>` : '';
+  const div = document.createElement('div');
+  div.className = 'q-card block' + (answered ? ' answered' : '');
+  div.innerHTML = `<div class="q-kicker">${Q_ICON} Question</div><p class="q-title">${esc(q.question)}</p>${q.hint ? `<p class="q-hint">${esc(q.hint)}</p>` : q.kind === 'multi' ? '<p class="q-hint">Choose any that apply.</p>' : q.kind === 'choice' ? '<p class="q-hint">Choose one option.</p>' : ''}${opts}${text}${answered ? `<p class="q-answer">You answered: <strong>${esc(msg.answer)}</strong></p>` : '<button type="button" class="btn primary q-submit" data-q-submit disabled>Submit answer →</button>'}`;
+  div._msg = msg;
+  return div;
+}
+const splitAnswer = (a) => String(a).split(/, | and /).map((x) => x.trim()).filter(Boolean);
+const joinAnswer = (xs) => xs.length < 2 ? (xs[0] || '') : `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}`;
+/** What the member picked or typed, or '' if nothing yet. */
+function cardAnswer(card) {
+  const q = card._msg.question;
+  if (q.kind === 'text') return card.querySelector('.q-text').value.trim();
+  const other = card.querySelector('.q-other-text');
+  const picks = [...card.querySelectorAll('input:checked')].map((i) => (i.value === '__other' ? other.value.trim() : i.value)).filter(Boolean);
+  return joinAnswer(picks);
+}
+function refreshCard(card) {
+  const other = card.querySelector('.q-other-text');
+  if (other) {
+    const on = !!card.querySelector('input[value="__other"]:checked');
+    if (other.hidden === on) { other.hidden = !on; if (on) other.focus(); }
+  }
+  const b = card.querySelector('[data-q-submit]');
+  if (b) b.disabled = state.busy || !cardAnswer(card);
+}
+/** Marks the open question as answered (by the card, or by a message typed in the box instead). */
+function closeOpenQuestion(answer) {
+  const m = [...conv.messages].reverse().find((x) => x.role === 'assistant');
+  if (!m?.question || m.answer !== undefined) return;
+  m.answer = answer;
+  const card = [...inner.querySelectorAll('.q-card:not(.answered)')].find((c) => c._msg === m);
+  if (card) card.replaceWith(questionCard(m));
+}
+function submitCard(card) {
+  const a = cardAnswer(card);
+  if (!a || state.busy) return;
+  ask(a);
+}
+inner.addEventListener('change', (e) => { const c = e.target.closest('.q-card'); if (c) refreshCard(c); });
+inner.addEventListener('input', (e) => { const c = e.target.closest('.q-card'); if (c) refreshCard(c); });
+inner.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' || !e.target.matches('.q-text, .q-other-text')) return;
+  e.preventDefault(); submitCard(e.target.closest('.q-card'));
+});
 
 /* ============ CONTACT ============ */
 function openContact() {
@@ -787,7 +876,7 @@ function renderWelcome(){
 }
 
 function addUser(text, file){
-  if (!started){ inner.innerHTML=''; started = true; }
+  if (!started){ inner.innerHTML = noticeHtml(); started = true; }
   const el = document.createElement('div'); el.className='msg-user block';
   el.innerHTML = `<div class="bubble">${file?`<div class="file-chip">${ICON.file} ${esc(file)}</div><br>`:''}${esc(text)}</div>`;
   inner.appendChild(el); scrollDown();
@@ -869,7 +958,7 @@ function renderDocList() {
     + '<p class="side-empty" style="margin-top:6px">Or describe any other document in the chat.</p>';
 }
 function openDocChooser() {
-  openModal('Write a document', `<p style="margin:0 0 12px;color:var(--muted);font-size:14px">Pick what you need. Ranger will ask about your camp, a few questions at a time, then write it from scratch for you. You can also describe any other document in the chat.</p><div style="display:flex;flex-direction:column;gap:10px">${DOC_IDEAS.map((d) => `<button type="button" class="starter" data-write="${esc(d.title)}" style="min-height:0"><span class="starter-text" style="font-weight:600">${esc(d.title)}</span><span style="font-size:13.5px;color:var(--muted)">${esc(d.hint)}</span></button>`).join('')}</div>`);
+  openModal('Write a document', `<p style="margin:0 0 12px;color:var(--muted);font-size:14px">Pick what you need. Ranger will ask about your camp one question at a time, then write it from scratch for you. You can also describe any other document in the chat.</p><div style="display:flex;flex-direction:column;gap:10px">${DOC_IDEAS.map((d) => `<button type="button" class="starter" data-write="${esc(d.title)}" style="min-height:0"><span class="starter-text" style="font-weight:600">${esc(d.title)}</span><span style="font-size:13.5px;color:var(--muted)">${esc(d.hint)}</span></button>`).join('')}</div>`);
 }
 /** Starts a chat asking Ranger to write a document. It interviews first, then writes. */
 function startWriting(title) {
@@ -1005,9 +1094,10 @@ document.addEventListener('click', (e) => {
 
 /* ============ PRIVACY NOTICE ============ */
 function retentionText(days) {
-  days = Number(days) || 730;
+  days = Number(days) || 548;
   if (days % 365 === 0) return days === 365 ? '1 year' : `${days / 365} years`;
-  if (days % 30 === 0 && days < 365) return `${days / 30} months`;
+  const months = Math.round(days / 30.4375);   // average month
+  if (Math.abs(months * 30.4375 - days) <= 1) return months === 1 ? '1 month' : `${months} months`;
   return `${days} days`;
 }
 async function openPrivacy() {
@@ -1028,7 +1118,7 @@ function askClearDevice() {
 function clearDevice() {
   try { localStorage.removeItem('ranger.history'); localStorage.removeItem('ranger.muni'); } catch {}
   state.muni = 'City of Example'; state.muniSet = false;
-  closeModal(); renderRecent(); renderWelcome();
+  closeModal(); renderRecent(); renderWelcome(); showNotice();
   toast('Cleared from this browser.');
 }
 
@@ -1075,13 +1165,14 @@ document.addEventListener('click', e=>{
   if (t.dataset.ask){ closeModal(); ask(t.dataset.ask); return; }
   if (t.dataset.docStarter !== undefined){ closeModal(); startFromStarter(t.dataset.docStarter); return; }
   if (t.dataset.write !== undefined){ closeModal(); closeSidebar(); startWriting(t.dataset.write); return; }
+  if (t.dataset.qSubmit !== undefined){ submitCard(t.closest('.q-card')); return; }
   if (t.dataset.draftPreview !== undefined){ const d = t.closest('.ai-body')?._msg?.draft; if (d) openDraftPreview(d); return; }
   if (t.dataset.draftDownload !== undefined){ const d = t.closest('.ai-body')?._msg?.draft || previewDraft; if (d) downloadDraft(d, t); return; }
   if (t.dataset.conv){ openConv(t.dataset.conv); return; }
   if (t.dataset.vote){ vote(t); return; }
   const a = t.dataset.action; if(!a) return;
   switch(a){
-    case 'new': if (state.busy) return; closeSidebar(); renderWelcome(); ta.focus(); break;
+    case 'new': if (state.busy) return; closeSidebar(); renderWelcome(); showNotice(); break;
     case 'menu': $('#sidebar').classList.toggle('open'); break;
     case 'gov-focus': { closeSidebar(); const sel=$('#gov-select'), box=$('#gov-control'); box.classList.remove('flash'); void box.offsetWidth; box.classList.add('flash'); sel.focus(); try{ sel.showPicker && sel.showPicker(); }catch(_){} break; }
     case 'contact': openContact(); break;
@@ -1097,7 +1188,7 @@ document.addEventListener('click', e=>{
     case 'attach-remove': state.attach = null; renderAttachChip(); updateSend(); ta.focus(); break;
     case 'copy': {
       const body = t.closest('.ai-body'); const m = body._msg;
-      const txt = m ? plain(m.text, new Map((m.citations||[]).map(c=>[c.marker||c.id,c.cite]))) : body.querySelector('.ai-answer, .block')?.innerText || '';
+      const txt = m ? [plain(m.text, new Map((m.citations||[]).map(c=>[c.marker||c.id,c.cite]))), m.question ? `${m.question.question}${m.question.options ? '\n' + m.question.options.map((o) => '- ' + o).join('\n') : ''}` : ''].filter((x) => x.trim()).join('\n\n') : body.querySelector('.ai-answer, .block')?.innerText || '';
       (navigator.clipboard?navigator.clipboard.writeText(txt.trim()):Promise.reject()).then(()=>toast('Answer copied.'),()=>toast('Copy isn\'t available in this view.'));
       break;
     }
@@ -1114,6 +1205,7 @@ document.querySelectorAll('[data-ranger-icon]').forEach(el=>el.innerHTML=rangerI
 document.title = `${BOT} – OMAG's Camp Safety Assistant`;
 renderProfile();
 renderWelcome();
+showNotice();
 loadSiteSettings();
 renderDocList();
 })();

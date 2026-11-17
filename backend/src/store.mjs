@@ -3,6 +3,7 @@
 //   pk CONV#<conversationId>  sk TURN#<iso>#<rand>   gsi1pk TURNS#<yyyy-mm-dd>  gsi1sk <turnId>
 //   pk CONTACT#<yyyy-mm-dd>   sk <iso>#<rand>        gsi1pk CONTACTS            gsi1sk <iso>
 //   pk RATE#<scope>#<date>    sk -                   (counters; expire after 2 days)
+//   pk ASKED#<conversation>   sk -                   (the question Ranger is waiting on; 2 days)
 
 import { createHash, randomBytes } from 'node:crypto';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
@@ -14,7 +15,7 @@ import { notify } from './notify.mjs';
 const TABLE = () => process.env.TABLE_NAME;
 import { getConfig } from './config.mjs';
 /** Days to keep records (Settings → Privacy notice), read when each record is written. */
-const RETENTION_DAYS = async () => Number((await getConfig()).settings.retentionDays || process.env.RETENTION_DAYS || 730);
+const RETENTION_DAYS = async () => Number((await getConfig()).settings.retentionDays || process.env.RETENTION_DAYS || 548);
 const SALT = () => process.env.HASH_SALT || 'local-dev';
 let ddb;
 const db = () => (ddb ||= DynamoDBDocumentClient.from(new DynamoDBClient({}), { marshallOptions: { removeUndefinedValues: true } }));
@@ -23,8 +24,32 @@ export const hash = (v) => createHash('sha256').update(SALT() + '|' + String(v |
 export const day = (d = new Date()) => d.toISOString().slice(0, 10);
 const epoch = (days) => Math.floor(Date.now() / 1000) + days * 86400;
 
-/** Counts one question against the per-IP and global daily limits (from settings). */
-export async function checkRateLimit(ip, { perIp = 60, global = 600 } = {}) {
+/** Answers to Ranger's own questions per person per day. High, because an interview can run long; it only stops abuse. */
+export const DAILY_ANSWER_LIMIT = 200;
+const questionKey = (q) => hash(`${q?.question || ''}|${(q?.options || []).join('|')}`);
+
+/** Ranger asked a question in this conversation: the member's next message answers it. */
+export async function rememberQuestion(conversationId, q) {
+  await kv.put({ pk: `ASKED#${conversationId}`, sk: '-', q: questionKey(q), expiresAt: epoch(2) });
+}
+
+/**
+ * True if this message answers the question Ranger is waiting on in this conversation (the question
+ * the browser sent back matches the one the server recorded). Used once: the record is removed.
+ */
+export async function takeAnswer(conversationId, q) {
+  if (!q?.question) return false;
+  const rec = await kv.get(`ASKED#${conversationId}`, '-');
+  if (!rec || rec.q !== questionKey(q) || (rec.expiresAt && rec.expiresAt < Date.now() / 1000)) return false;
+  await kv.del(`ASKED#${conversationId}`, '-');
+  return true;
+}
+
+/**
+ * Daily limits. An answer to one of Ranger's questions (answer: true) doesn't use up the member's
+ * daily questions; it counts toward a separate, higher allowance and still toward the global cap.
+ */
+export async function checkRateLimit(ip, { perIp = 60, global = 600, answer = false } = {}) {
   if (!TABLE()) return { ok: true };
   const bump = async (pk, limit) => {
     try {
@@ -42,6 +67,10 @@ export async function checkRateLimit(ip, { perIp = 60, global = 600 } = {}) {
     }
   };
   if (!(await bump(`RATE#global#${day()}`, global))) { metric('GlobalLimitReached'); return { ok: false, reason: 'Ranger has reached its daily limit. Please try again tomorrow, or contact OMAG directly.' }; }
+  if (answer) {
+    if (!(await bump(`RATE#ans#${hash(ip)}#${day()}`, DAILY_ANSWER_LIMIT))) { metric('PersonLimitReached'); return { ok: false, reason: "You've reached today's limit. Please try again tomorrow, or contact OMAG directly." }; }
+    return { ok: true };
+  }
   if (!(await bump(`RATE#ip#${hash(ip)}#${day()}`, perIp))) { metric('PersonLimitReached'); return { ok: false, reason: "You've reached today's question limit. Please try again tomorrow, or contact OMAG directly." }; }
   return { ok: true };
 }

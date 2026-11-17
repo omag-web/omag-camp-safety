@@ -121,6 +121,7 @@ pre.log{white-space:pre-wrap;word-break:break-word;background:#f8f5ee;border:1px
 /* sample documents */
 .smp-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start;padding:14px 4px;border-bottom:1px solid var(--line)}
 .smp-row:last-child{border-bottom:none}
+.pv-choices{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
 .smp-row .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .smp-row .chip{font-size:12px;padding:2px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted,#6b6b6b);background:transparent}
 .smp-row .chip.on{border-color:transparent;background:#e3efe6;color:#245a3b;font-weight:600}
@@ -429,7 +430,7 @@ h1,h2,h3,.brand-name{font-family:'Bitter',Georgia,serif;letter-spacing:-.005em}
             <div class="field" style="margin-top:10px"><label for="set-model">AI model</label><select class="select" id="set-model"></select><input class="input" id="set-model-other" placeholder="Bedrock model ID, e.g. us.openai.gpt-5.6-sol" style="margin-top:6px" hidden><span class="hint">Run a few questions in the Instructions preview, or <strong>Answer checks</strong>, after switching.</span></div>
             <div class="field" style="margin-top:10px"><label for="set-fallback">Backup model</label><select class="select" id="set-fallback"></select><span class="hint">Used automatically for an answer if the main model is busy or unavailable. Alarm emails tell you when it happens often.</span></div>
             <div class="grid g2" style="margin-top:10px;gap:10px">
-              <div class="field"><label for="set-ip">Questions per person per day</label><input class="input" id="set-ip" type="number" min="0"></div>
+              <div class="field"><label for="set-ip">Questions per person per day</label><input class="input" id="set-ip" type="number" min="0"><span class="hint">Answers to Ranger’s own questions (the question cards) don’t count. They have a separate allowance of 200 a day.</span></div>
               <div class="field"><label for="set-global">Questions per day, everyone</label><input class="input" id="set-global" type="number" min="0"></div>
             </div>
             <p class="hint" style="margin:8px 0 0">The daily total is your spending ceiling. Set it to 0 to pause Ranger for everyone.</p>
@@ -464,7 +465,7 @@ h1,h2,h3,.brand-name{font-family:'Bitter',Georgia,serif;letter-spacing:-.005em}
       </div>
       <div class="card" style="margin-top:16px">
         <div class="row" style="justify-content:space-between"><h2>Privacy notice</h2><button class="btn sm" type="button" id="set-privacy-default">Use the default text</button></div>
-        <div class="field" style="max-width:340px;margin:4px 0 12px"><label for="set-retention-days">Keep conversations for (days)</label><input class="input" id="set-retention-days" type="number" min="30" max="3650"><span class="hint">Currently <span id="set-retention"></span>. Applies to conversations, feedback and messages saved from now on; older ones keep the time they were saved with.</span></div>
+        <div class="field" style="max-width:340px;margin:4px 0 12px"><label for="set-retention-days">Keep conversations for (days)</label><input class="input" id="set-retention-days" type="number" min="30" max="3650" placeholder="548 = 18 months"><span class="hint">Currently <span id="set-retention"></span>. Applies to conversations, feedback and messages saved from now on; older ones keep the time they were saved with.</span></div>
         <p class="sub">Members open it from the <strong>Privacy</strong> link under the message box. <code>{retention}</code> becomes how long conversations are kept and <code>{phone}</code> the OMAG phone above. Headings start with <code>## </code>, list items with <code>- </code>. Have OMAG Legal review it.</p>
         <label for="set-privacy" class="sr-only">Privacy notice</label>
         <textarea id="set-privacy" class="code" style="min-height:360px"></textarea>
@@ -962,6 +963,12 @@ async function streamChat(path, payload, onEvent) {
     while ((nl = buf.indexOf('\n')) >= 0) { const line = buf.slice(0, nl).trim(); buf = buf.slice(nl + 1); if (line) onEvent(JSON.parse(line)); }
   }
 }
+$('#pv-chat').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-pv-choice]'); if (!b || pv.busy) return;
+  const q = $('#pv-q');
+  if (b.dataset.pvMulti) { q.value = q.value.trim() ? `${q.value.trim()}, ${b.dataset.pvChoice}` : b.dataset.pvChoice; q.focus(); return; }
+  q.value = b.dataset.pvChoice; $('#pv-form-ask').requestSubmit();
+});
 $('#pv-reset').addEventListener('click', () => { pv = { id: null, messages: [], busy: false }; $('#pv-chat').innerHTML = '<div class="empty">Ask a question to see how Ranger answers with these instructions.</div>'; });
 $('#pv-form-ask').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -986,7 +993,10 @@ $('#pv-form-ask').addEventListener('submit', async (e) => {
         body.innerHTML = md(acc, cites);
         $$('.cite', body).forEach((b) => { const c = (ev.citations || []).find((x) => x.marker === b.dataset.cite || x.id === b.dataset.cite); if (c) b.dataset.cite = c.id; });
         if (ev.unread?.length) body.insertAdjacentHTML('beforeend', `<p class="hint">Removed ${ev.unread.length} unverified reference${ev.unread.length > 1 ? 's' : ''}: ${esc(ev.unread.join(', '))}</p>`);
-        pv.messages.push({ role: 'assistant', text: acc });
+        // Members see a question card; here the options are buttons that answer for you.
+        const q = ev.question;
+        if (q) body.insertAdjacentHTML('beforeend', `<div class="pv-choices"><span class="hint"><strong>Question:</strong> ${esc(q.question)}${q.kind === 'multi' ? ' (click to add to your reply)' : ''}</span> ${(q.options || []).map((o) => `<button type="button" class="btn sm" data-pv-choice="${esc(o)}" data-pv-multi="${q.kind === 'multi' ? 1 : ''}">${esc(o)}</button>`).join(' ')}${q.kind === 'text' ? '<span class="hint">Type your answer below.</span>' : ''}</div>`);
+        pv.messages.push({ role: 'assistant', text: acc, ...(q ? { question: q } : {}) });
       }
     });
   } catch (err) {
@@ -1265,7 +1275,7 @@ loaders.settings = async () => {
   $('#set-welcome').value = settings.welcomeText; $('#set-disclaimer').value = settings.disclaimer; $('#set-phone').value = settings.contactPhone;
   privacyDefault = r.privacyDefault; $('#set-privacy').value = settings.privacyNotice || r.privacyDefault;
   const rd = settings.retentionDays; $('#set-retention-days').value = rd;
-  $('#set-retention').textContent = rd % 365 === 0 ? `${rd / 365} year${rd === 365 ? '' : 's'}` : `${rd} days`;
+  $('#set-retention').textContent = rd % 365 === 0 ? `${rd / 365} year${rd === 365 ? '' : 's'}` : Math.abs(Math.round(rd / 30.4375) * 30.4375 - rd) <= 1 ? `${Math.round(rd / 30.4375)} months` : `${rd} days`;
   loadRecipients();
   $('#set-ip').value = settings.dailyLimitPerIp; $('#set-global').value = settings.dailyLimitGlobal;
   $('#set-pin').value = settings.priceInputPerM || 0; $('#set-pout').value = settings.priceOutputPerM || 0;
