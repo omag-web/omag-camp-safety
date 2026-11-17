@@ -18,7 +18,7 @@ Parameters:
     Default: omag-web/omag-camp-safety
   RepositoryWithIds:
     Type: String
-    Default: 'omag-web@312579818/omag-camp-safety@REPO_ID'
+    Default: omag-web@312579818/omag-camp-safety@1461522876
     Description: >-
       The same repository as GitHub names it in newer identity tokens, with the owner and repository
       ID numbers. IDs never change, so a deleted-and-recreated repository with the same name can't

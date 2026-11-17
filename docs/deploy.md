@@ -37,7 +37,7 @@ From the `omag-camp-safety` folder, with your AWS profile:
 aws cloudformation deploy --template-file deploy/github-deploy-role.yaml --stack-name ranger-camp-safety-github-deploy --capabilities CAPABILITY_NAMED_IAM --profile omag --region us-east-1
 ```
 
-This creates a role only the `main` branch of `omag-web/omag-camp-safety` can use. It reuses the GitHub identity provider Pip set up (`CreateGitHubOidcProvider` defaults to `false`). Optional hardening: add `--parameter-overrides RepositoryWithIds=omag-web@312579818/omag-camp-safety@<id>` with the number from `gh api repos/omag-web/omag-camp-safety --jq .id`. Then a deleted-and-recreated repo with the same name can't use the role.
+This creates a role only the `main` branch of `omag-web/omag-camp-safety` can use. It reuses the GitHub identity provider Pip set up (`CreateGitHubOidcProvider` defaults to `false`). OMAG's GitHub identifies repos to AWS by ID number, so the role's `RepositoryWithIds` must match this repo's ID (`1461522876`). If the deploy says *Not authorized to perform sts:AssumeRoleWithWebIdentity*, check that value.
 
 You can also do this in the AWS console: **CloudFormation → Create stack → Upload a template file**, choose `deploy/github-deploy-role.yaml`, name it `ranger-camp-safety-github-deploy`, keep the defaults, and tick the IAM acknowledgment.
 
