@@ -1604,7 +1604,10 @@ const ADM_STATUS = {
 };
 function renderAdmins(r) {
   const rows = r.admins;
-  allAreas = r.allAreas || allAreas; defaultAreas = r.defaultAreas || defaultAreas;
+  if (r.allAreas && Object.keys(r.allAreas).length) allAreas = r.allAreas;
+  defaultAreas = r.defaultAreas || defaultAreas;
+  // An older server (mid-deploy) doesn't send areas: say so instead of showing "Everything".
+  serverHasAreas = rows.every((u) => Array.isArray(u.areas));
   renderInviteAreas();
   $('#adm-table').innerHTML = `<table><thead><tr><th>Admin</th><th>Can see</th><th>Status</th><th>Two-step</th><th></th></tr></thead><tbody>${rows.map((u) => {
     const [label, tone, note] = !u.enabled ? ['Turned off', 'muted', 'Can’t sign in'] : ADM_STATUS[u.status] || [u.status, 'muted', ''];
@@ -1627,8 +1630,17 @@ function renderAdmins(r) {
   admins = rows;
 }
 let admins = [];
-let allAreas = {}, defaultAreas = ['reports', 'content'];
-const areaChips = (areas = []) => (areas.length === Object.keys(allAreas).length
+// The same list as backend/src/permissions.mjs, so the page always has the options even if the
+// server's copy hasn't arrived (the server's list replaces it when it does).
+let allAreas = {
+  reports: { label: 'Reports', covers: 'Analytics: usage, topics, cities, ratings and cost' },
+  content: { label: 'Content', covers: 'Instructions, OMAG documents, sample documents, statute library and answer checks' },
+  conversations: { label: 'Conversations and messages', covers: 'Members’ conversations and their “Talk to OMAG” notes' },
+  settings: { label: 'Settings', covers: 'Limits, AI model and prices, welcome screen, privacy notice, retention and email lists' },
+  admins: { label: 'Admins', covers: 'Invite, remove and change other admins’ access' }
+}, defaultAreas = ['reports', 'content'], serverHasAreas = true;
+const NOT_READY = 'The server hasn’t picked up access levels yet (an update may be finishing). Refresh the page in a minute.';
+const areaChips = (areas) => !Array.isArray(areas) ? '<span class="hint">Refresh to see</span>' : (areas.length === Object.keys(allAreas).length
   ? '<span class="pill ok">Everything</span>'
   : `<div class="area-chips">${areas.map((a) => `<span class="pill muted">${esc(allAreas[a]?.label || a)}</span>`).join('')}</div>`);
 const areaBoxes = (picked, name) => Object.entries(allAreas).map(([k, a]) => `<label class="area-opt"><input type="checkbox" name="${name}" value="${k}" ${picked.includes(k) ? 'checked' : ''}><span><strong>${esc(a.label)}</strong><br><span class="hint">${esc(a.covers)}</span></span></label>`).join('');
@@ -1711,9 +1723,10 @@ $('#adm-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = $('#adm-email').value.trim(); if (!email) return;
   if (!/@omag\.org$/i.test(email) && !await ask(`${email} isn't an omag.org address. Admins can read every member conversation. Invite them anyway?`, { ok: 'Invite anyway' })) return;
-  const btn = $('#adm-invite'); btn.disabled = true;
   const areas = [...document.querySelectorAll('input[name=inv-area]:checked')].map((i) => i.value);
+  if (!serverHasAreas) { toast(NOT_READY); return; }   // an older server would give them everything
   if (!areas.length) { toast('Choose at least one thing they can see.'); return; }
+  const btn = $('#adm-invite'); btn.disabled = true;
   try { const r = await api('POST', '/admin/admins', { email, areas }); renderAdmins(r); $('#adm-email').value = ''; toast(r.message); } catch (err) { fail(err); } finally { btn.disabled = false; }
 });
 $('#adm-table').addEventListener('click', async (e) => {
@@ -1721,6 +1734,7 @@ $('#adm-table').addEventListener('click', async (e) => {
   const u = admins.find((x) => x.username === b.dataset.id); if (!u) return;
   const act = b.dataset.adm;
   if (act === 'access') {
+    if (!serverHasAreas) { toast(NOT_READY); return; }
     const areas = await chooseAreas(u);
     if (!areas) return;
     if (!areas.length) { toast('Choose at least one area, or use Turn off instead.'); return; }
