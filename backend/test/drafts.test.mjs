@@ -48,16 +48,16 @@ test('write_document tool hands the draft to the turn', () => {
 });
 
 test('get_sample is offered only when OMAG has sample documents switched on', async () => {
-  // No samples → only research tools and write_document.
+  // No samples → research tools, write_document and ask_choice.
   let tools;
   const turn = async (a) => { tools = a.tools; return { stopReason: 'end_turn', usage: {}, content: [{ text: 'ok' }] }; };
   await runAgent({ history: [{ role: 'user', text: 'hi' }], library, turn });
-  assert.deepEqual(tools.map((t) => t.toolSpec.name), ['search_law', 'get_sections', 'write_document']);
+  assert.deepEqual(tools.map((t) => t.toolSpec.name), ['search_law', 'get_sections', 'write_document', 'ask_choice']);
 
   const samples = [{ id: 'lightning', title: 'Lightning Plan', description: 'Lightning' }];
   const loadSample = async (id) => { if (id !== 'lightning') throw new Error('No such sample'); return { title: 'Lightning Plan', text: 'Camp Example stops activities when thunder is heard.', truncated: false }; };
   await runAgent({ history: [{ role: 'user', text: 'hi' }], library, turn, samples, loadSample });
-  assert.deepEqual(tools.map((t) => t.toolSpec.name), ['search_law', 'get_sections', 'write_document', 'get_sample']);
+  assert.deepEqual(tools.map((t) => t.toolSpec.name), ['search_law', 'get_sections', 'write_document', 'ask_choice', 'get_sample']);
 
   const r = await runTool('get_sample', { sample_id: 'lightning' }, library, { samples, loadSample });
   assert.equal(r.result.title, 'Lightning Plan');
@@ -69,7 +69,7 @@ test('get_sample is offered only when OMAG has sample documents switched on', as
 test('the prompt interviews for camp details before writing', () => {
   const p = buildSystemPrompt({ form: 'camp', city: 'City of Ada' });
   assert.match(p, /# Writing documents/);
-  for (const topic of [/day camp or overnight/, /staff-to-camper ratios/, /pool, lake or river/, /who makes emergency calls/, /health, allergies and medications/, /HB 1675/, /two to four/, /\[brackets\]/, /Never invent facts, names, phone numbers, addresses, dates, amounts/]) assert.match(p, topic);
+  for (const topic of [/day camp or overnight/, /staff-to-camper ratios/, /pool, lake or river/, /who makes emergency calls/, /health, allergies and medications/, /HB 1675/, /one question at a time/, /\[brackets\]/, /Never invent facts, names, phone numbers, addresses, dates, amounts/]) assert.match(p, topic);
   assert.doesNotMatch(p, /offer_document|get_sample/, 'no fill-in tool, and no samples switched on');
 });
 

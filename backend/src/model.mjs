@@ -111,7 +111,21 @@ async function mockTurn({ messages, onText, onToolStart, tools = [] }) {
   const usage = { inputTokens: 1200, outputTokens: 180, cacheReadInputTokens: 0 };
 
   const canWrite = tools.some((t) => t.toolSpec?.name === 'write_document');
-  if (!toolResults.length && canWrite && /\b(build|create|draft|write|make|need|change|update|revise|add)\b.*\b(plan|policy|procedure|assessment|document|letter|form|checklist|it)\b/i.test(userText)) {
+  const canAsk = tools.some((t) => t.toolSpec?.name === 'ask_choice');
+  const lastAssistant = [...messages].reverse().find((m) => m.role === 'assistant' && m.content.some((x) => x.text))?.content.map((x) => x.text || '').join('') || '';
+  const askedDayOrOvernight = /day camp or an overnight camp/.test(lastAssistant);
+  // Multiple-choice questions: a select-all checklist to get started, and one question before a water safety plan.
+  if (!toolResults.length && canAsk && /which city facilities and programs|get started|where do (we|I) start/i.test(userText)) {
+    onText?.('Let’s start with an inventory.');
+    return { stopReason: 'tool_use', usage, content: [{ text: 'Let’s start with an inventory.' }, { toolUse: { toolUseId: 'mock-ask', name: 'ask_choice', input: {
+      question: 'Which of these does your municipality have or host?', multiple: true, exclusive: ['None', 'Not sure'],
+      options: ['City campgrounds, RV parks or campsites', 'Lakes, cabins or other overnight recreation', 'Youth day camps or summer camps', 'Outdoor youth education or adventure programs', 'Pools or aquatic centers with youth programs', 'Property used by outside camp operators', 'None', 'Not sure'] } } }] };
+  }
+  if (!toolResults.length && canAsk && !askedDayOrOvernight && /water safety/i.test(userText)) {
+    return { stopReason: 'tool_use', usage, content: [{ toolUse: { toolUseId: 'mock-ask', name: 'ask_choice', input: {
+      question: 'Is this a day camp or an overnight camp?', options: ['Day camp', 'Overnight camp', 'Both', 'Not sure'] } } }] };
+  }
+  if (!toolResults.length && canWrite && (askedDayOrOvernight || /\b(build|create|draft|write|make|need|change|update|revise|add)\b.*\b(plan|policy|procedure|assessment|document|letter|form|checklist|it)\b/i.test(userText))) {
     const town = userText.match(/\b((?:Town|City) of [A-Z][\w ]+?)\b(?=[.,?!]|$)/)?.[1] || 'Your Municipality';
     const camp = userText.match(/\b(Camp [A-Z][\w]+)/)?.[1] || '[Camp name]';
     onToolStart?.('write_document');

@@ -50,7 +50,7 @@ Call OMAG at {phone}.`;
 
 export function defaultSettings() {
   return {
-    welcomeText: "I'm OMAG's AI assistant for the Oklahoma camp safety law (HB 1675). I can help you find which of your facilities and programs may be covered, and write the plans, policies and forms your camp needs. I'll ask about your camp a few questions at a time, then write each document from scratch for you.",
+    welcomeText: "I'm OMAG's AI assistant for the Oklahoma camp safety law (HB 1675). I can help you find which of your facilities and programs may be covered, and write the plans, policies and forms your camp needs. I'll ask about your camp one question at a time, then write each document from scratch for you.",
     starters: [
       { kicker: 'Get started', text: 'Help us find which city facilities and programs might be covered' },
       { kicker: 'Coverage', text: 'Does our parks department summer day camp count as a youth camp?' },
@@ -92,7 +92,7 @@ export async function getConfig({ fresh = false } = {}) {
   const value = {
     guidance: live?.text ?? DEFAULT_GUIDANCE,
     guidanceMeta: live ? { publishedAt: live.publishedAt, publishedBy: live.publishedBy, note: live.note } : { default: true },
-    settings: { ...defaultSettings(), ...(settings ? stripMeta(settings) : {}) },
+    settings: upgradeSettings({ ...defaultSettings(), ...(settings ? stripMeta(settings) : {}) }),
     versions: { library: versions?.library || 0, docs: versions?.docs || 0 }
   };
   cache = { at: Date.now(), value };
@@ -101,6 +101,14 @@ export async function getConfig({ fresh = false } = {}) {
 export function invalidateConfig() { cache = null; }
 
 const stripMeta = ({ pk, sk, updatedAt, updatedBy, ...rest }) => rest;
+
+// Saved settings keep the welcome text they were saved with. If it's still the old default
+// ("a few questions at a time"), show the current default, which says one question at a time.
+const OLD_WELCOME = "I'm OMAG's AI assistant for the Oklahoma camp safety law (HB 1675). I can help you find which of your facilities and programs may be covered, and write the plans, policies and forms your camp needs. I'll ask about your camp a few questions at a time, then write each document from scratch for you.";
+function upgradeSettings(s) {
+  if (s.welcomeText === OLD_WELCOME) s.welcomeText = defaultSettings().welcomeText;
+  return s;
+}
 
 /* ---------- guidance ---------- */
 export async function getGuidanceState() {

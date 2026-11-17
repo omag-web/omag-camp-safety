@@ -121,6 +121,7 @@ pre.log{white-space:pre-wrap;word-break:break-word;background:#f8f5ee;border:1px
 /* sample documents */
 .smp-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start;padding:14px 4px;border-bottom:1px solid var(--line)}
 .smp-row:last-child{border-bottom:none}
+.pv-choices{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
 .smp-row .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .smp-row .chip{font-size:12px;padding:2px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted,#6b6b6b);background:transparent}
 .smp-row .chip.on{border-color:transparent;background:#e3efe6;color:#245a3b;font-weight:600}
@@ -962,6 +963,12 @@ async function streamChat(path, payload, onEvent) {
     while ((nl = buf.indexOf('\n')) >= 0) { const line = buf.slice(0, nl).trim(); buf = buf.slice(nl + 1); if (line) onEvent(JSON.parse(line)); }
   }
 }
+$('#pv-chat').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-pv-choice]'); if (!b || pv.busy) return;
+  const q = $('#pv-q');
+  if (b.dataset.pvMulti) { q.value = q.value.trim() ? `${q.value.trim()}, ${b.dataset.pvChoice}` : b.dataset.pvChoice; q.focus(); return; }
+  q.value = b.dataset.pvChoice; $('#pv-form-ask').requestSubmit();
+});
 $('#pv-reset').addEventListener('click', () => { pv = { id: null, messages: [], busy: false }; $('#pv-chat').innerHTML = '<div class="empty">Ask a question to see how Ranger answers with these instructions.</div>'; });
 $('#pv-form-ask').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -986,7 +993,9 @@ $('#pv-form-ask').addEventListener('submit', async (e) => {
         body.innerHTML = md(acc, cites);
         $$('.cite', body).forEach((b) => { const c = (ev.citations || []).find((x) => x.marker === b.dataset.cite || x.id === b.dataset.cite); if (c) b.dataset.cite = c.id; });
         if (ev.unread?.length) body.insertAdjacentHTML('beforeend', `<p class="hint">Removed ${ev.unread.length} unverified reference${ev.unread.length > 1 ? 's' : ''}: ${esc(ev.unread.join(', '))}</p>`);
-        pv.messages.push({ role: 'assistant', text: acc });
+        // Members see these in a pop-up; here they're buttons that answer for you.
+        if (ev.choice) body.insertAdjacentHTML('beforeend', `<div class="pv-choices"><span class="hint">${ev.choice.multiple ? 'Answer buttons (members can pick several; click to add to your reply)' : 'Answer buttons (click one to answer)'}:</span> ${ev.choice.options.map((o) => `<button type="button" class="btn sm" data-pv-choice="${esc(o)}" data-pv-multi="${ev.choice.multiple ? 1 : ''}">${esc(o)}</button>`).join(' ')}</div>`);
+        pv.messages.push({ role: 'assistant', text: acc, ...(ev.choice ? { choice: ev.choice } : {}) });
       }
     });
   } catch (err) {
