@@ -19,7 +19,7 @@ on:
         required: false
         default: ''
       hosted_zone_id:
-        description: 'Route 53 hosted zone ID for that domain (e.g. Z0123456789ABC). Leave blank to keep the current one.'
+        description: 'Route 53 hosted zone ID for that domain. Leave blank to find it automatically (or keep the current one).'
         required: false
         default: ''
       admin_email:
@@ -85,6 +85,28 @@ jobs:
           role-to-assume: ${{ env.ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Find the Route 53 zone for the web address
+        # Given a web address but no zone ID: use the account's public hosted zone for that domain
+        # (for campsafety.omag.org, the omag.org zone Pip's hr.omag.org also uses). Ranger only adds its own records.
+        if: ${{ inputs.site_domain != '' && inputs.hosted_zone_id == '' }}
+        env:
+          IN_SITE_DOMAIN: ${{ inputs.site_domain }}
+        run: |
+          HOST=$(echo "$IN_SITE_DOMAIN" | tr 'A-Z' 'a-z' | sed -E 's#^https?://##; s#/.*$##')
+          D="$HOST"
+          while [ "${D#*.}" != "$D" ]; do
+            ID=$(aws route53 list-hosted-zones-by-name --dns-name "$D." --max-items 1 \
+              --query "HostedZones[?Name=='$D.' && Config.PrivateZone==\`false\`].Id | [0]" --output text)
+            if [ -n "$ID" ] && [ "$ID" != "None" ]; then
+              echo "Using hosted zone ${ID#/hostedzone/} ($D) for $HOST"
+              echo "ZONE_FOUND=${ID#/hostedzone/}" >> "$GITHUB_ENV"
+              exit 0
+            fi
+            D="${D#*.}"
+          done
+          echo "No public Route 53 zone in this account covers $HOST. Enter hosted_zone_id, or add the DNS records by hand." >&2
+          exit 1
+
       - name: Keep the stack's current settings
         env:
           IN_SITE_DOMAIN: ${{ inputs.site_domain }}
@@ -106,7 +128,7 @@ jobs:
             // Values typed into "Run workflow" replace the stored ones.
             const typed = {
               SiteDomain: (process.env.IN_SITE_DOMAIN || "").trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, ""),
-              HostedZoneId: (process.env.IN_ZONE || "").trim().toUpperCase().replace(/^\/?HOSTEDZONE\//, "")
+              HostedZoneId: (process.env.IN_ZONE || process.env.ZONE_FOUND || "").trim().toUpperCase().replace(/^\/?HOSTEDZONE\//, "")
             };
             const emails = { AdminEmail: (process.env.IN_ADMIN || "").trim().toLowerCase(), ContactEmail: (process.env.IN_CONTACT || "").trim().toLowerCase() };
             for (const [k, v] of Object.entries(emails)) {
