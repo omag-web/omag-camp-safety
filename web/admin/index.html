@@ -1357,12 +1357,13 @@ window.addEventListener('beforeunload', (e) => { if (tplDirty && tplCur) { e.pre
 /* ================= SETTINGS ================= */
 let settings = null;
 let starterTemplates = [];
-const starterTplSelect = (s) => `<label class="row hint starter-tpl" style="gap:6px;margin:6px 0 0 138px;flex-wrap:nowrap"${s.doc ? '' : ' hidden'}><span style="white-space:nowrap">Opens</span><select class="select" data-k="templateId" style="max-width:360px"><option value="">Ask which document</option>${starterTemplates.map((t) => `<option value="${esc(t.id)}" ${t.id === s.templateId ? 'selected' : ''}>${esc(t.title)}${t.enabled === false ? ' (switched off)' : ''}</option>`).join('')}</select></label>`;
+// Doc starters are worded as a request ("Write a … for our camp"); Ranger interviews the member, then writes it.
+const starterTplSelect = () => '';
 function starterRow(s = {}) {
   return `<div class="starter"><div class="row" style="flex-wrap:nowrap">
     <label class="sr-only">Label</label><input class="input" data-k="kicker" value="${esc(s.kicker || '')}" placeholder="Label" style="width:130px">
     <label class="sr-only">Question</label><input class="input" data-k="text" value="${esc(s.text || '')}" placeholder="Question members can click">
-    <label class="row hint" style="gap:4px;white-space:nowrap" title="Opens a document template instead of asking Ranger"><input type="checkbox" data-k="doc" ${s.doc ? 'checked' : ''}> Doc</label>
+    <label class="row hint" style="gap:4px;white-space:nowrap" title="Shown as a “Write a document” starter: Ranger asks about the camp, then writes this document"><input type="checkbox" data-k="doc" ${s.doc ? 'checked' : ''}> Doc</label>
     <button class="icon-btn" type="button" data-remove aria-label="Remove starter">✕</button>
   </div>${starterTplSelect(s)}</div>`;
 }
@@ -1414,10 +1415,10 @@ $$('.rcp-list').forEach((box) => box.addEventListener('click', async (e) => {
 
 $('#set-add-starter').addEventListener('click', () => { if ($$('.starter').length >= 6) return toast('Up to 6 starters.'); $('#set-starters').insertAdjacentHTML('beforeend', starterRow()); });
 $('#set-starters').addEventListener('click', (e) => { if (e.target.closest('[data-remove]')) e.target.closest('.starter').remove(); });
-$('#set-starters').addEventListener('change', (e) => { if (e.target.matches('[data-k=doc]')) $('.starter-tpl', e.target.closest('.starter')).hidden = !e.target.checked; });
+$('#set-starters').addEventListener('change', (e) => { if (e.target.matches('[data-k=doc]')) { const x = $('.starter-tpl', e.target.closest('.starter')); if (x) x.hidden = !e.target.checked; } });
 $('#set-save').addEventListener('click', async () => {
   try {
-    const starters = $$('#set-starters .starter').map((r) => ({ kicker: $('[data-k=kicker]', r).value, text: $('[data-k=text]', r).value, doc: $('[data-k=doc]', r).checked, templateId: $('[data-k=templateId]', r).value }));
+    const starters = $$('#set-starters .starter').map((r) => ({ kicker: $('[data-k=kicker]', r).value, text: $('[data-k=text]', r).value, doc: $('[data-k=doc]', r).checked, templateId: $('[data-k=templateId]', r)?.value || '' }));
     await api('PUT', '/admin/settings', {
       welcomeText: $('#set-welcome').value, disclaimer: $('#set-disclaimer').value, contactPhone: $('#set-phone').value, privacyNotice: $('#set-privacy').value,
       starters, dailyLimitPerIp: Number($('#set-ip').value), dailyLimitGlobal: Number($('#set-global').value), modelId: $('#set-model').value === '__other' ? $('#set-model-other').value.trim() : $('#set-model').value, retentionDays: Number($('#set-retention-days').value), fallbackModelId: $('#set-fallback').value,

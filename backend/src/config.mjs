@@ -50,12 +50,12 @@ Call OMAG at {phone}.`;
 
 export function defaultSettings() {
   return {
-    welcomeText: "I'm OMAG's AI assistant for the Oklahoma camp safety law (HB 1675). I can help you find which of your facilities and programs may be covered, then walk you through a site-specific hazard assessment and emergency action plan, one question at a time.",
+    welcomeText: "I'm OMAG's AI assistant for the Oklahoma camp safety law (HB 1675). I can help you find which of your facilities and programs may be covered, and write the plans, policies and forms your camp needs. I'll ask about your camp a few questions at a time, then write each document from scratch for you.",
     starters: [
       { kicker: 'Get started', text: 'Help us find which city facilities and programs might be covered' },
       { kicker: 'Coverage', text: 'Does our parks department summer day camp count as a youth camp?' },
       { kicker: 'Deadlines', text: 'What is due, when, and where do we file it?' },
-      { kicker: 'Build a plan', text: 'Build a hazard assessment or emergency action plan', doc: true }
+      { kicker: 'Write a document', text: 'Write a severe weather and lightning plan for our camp', doc: true }
     ],
     privacyNotice: '',
     disclaimer: 'Answers and drafts are general information, not legal advice or a compliance determination. Review plans with your municipal attorney, county emergency management and OMAG.',

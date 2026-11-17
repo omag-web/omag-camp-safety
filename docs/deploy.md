@@ -77,7 +77,7 @@ Ranger's own daily question limits (**Settings**) cap its AI spend regardless.
 ## 9. Sign in and load the starter content
 
 1. Use the invitation email to sign in at the AdminUrl and set up two-step sign-in.
-2. **Document templates → Import a template pack** → choose `knowledge/templates/ranger-camp-safety-templates.zip` from the repo. It adds four documents, all switched on: **Site-Specific Hazard Assessment**, **Emergency Action Plan** (with a separate recreational campground version), **Hazard Disclosure and Acknowledgment**, and **Staff Training and Drill Record**. Open each one and click **Test with sample answers** to see it. To change one, edit its questions here, or edit `knowledge/templates/build-pack.py`, run it, and import again.
+2. **Documents:** nothing to import. Ranger writes each document itself after interviewing the member. The **Document templates** page is for OMAG samples later (see the README's "Documents" section); `knowledge/templates/ranger-camp-safety-templates.zip` is a starting point for those.
 3. **OMAG documents → Add a web page**: add `https://oklahoma.gov/oem/home/camp-safety.html` (OEM's camp safety page) and `https://www.omag.org/camp-safety`. Upload OEM's HB 1675 checklist PDF and fact sheet as documents, with publisher **OEM**. Ranger re-reads web pages daily and cites these as guidance, separately from the statute.
 4. **Instructions**: read the editable guidance (it carries the CustomGPT's five workflows) and adjust anything OMAG wants said differently. Try it in the preview before publishing.
 5. **Answer checks → Run checks now** to see how Ranger does on the 30 starter questions.
@@ -107,7 +107,7 @@ Everything day to day is done in the admin panel, with no GitHub or AWS console 
 | Change the welcome text, starter questions, disclaimer, phone, privacy notice, how long conversations are kept, model, backup model or daily limits | **Settings** |
 | Choose who gets "Talk to OMAG" messages, and separately who gets alarm and failure emails | **Settings → Who gets Ranger's emails**: two lists. New addresses must click AWS's confirmation email first. Until someone confirms on the messages list, members' notes go to the alerts list so none are lost. |
 | Add, remove or re-invite admins | **Admins** |
-| Add or update a document members can build (hazard assessment, emergency action plan…) | **Document templates**: upload a Word file with `{{fields}}`, write the questions, test it, switch it on. The page explains the field syntax. |
+| Change which documents are suggested | The sidebar list is `DOC_IDEAS` in `web/index.html`. The welcome-screen buttons are under **Settings → Starter questions**: tick **Doc** and word it as a request, e.g. "Write a water safety plan for our camp". |
 | See or search the statute library, check its source addresses, change them, add a title or CFR part, or rebuild it | **Statute library**: **Check links**, **Edit sources**, **Rebuild now** (about 3–8 minutes; Ranger keeps answering meanwhile) |
 | Test Ranger's answers after changing the instructions, model or library; add or edit test questions | **Answer checks**: **Run checks now** (about 5–10 minutes, about $1–2); click a past run to see each answer |
 

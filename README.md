@@ -4,7 +4,7 @@
 
 - **finds what may be covered:** inventories a municipality's camps, campgrounds, parks and youth programs, and screens each against the statutory definitions and exemptions;
 - **interviews, one question at a time,** through a site-specific hazard assessment and an emergency action plan, reusing every answer;
-- **builds the documents:** fills OMAG's Word templates (hazard assessment, emergency action plan with a campground version, hazard disclosure and acknowledgment, training and drill record) with what the member told it, each marked as a draft pending review;
+- **writes custom documents:** emergency action plans, hazard assessments, weather and water safety plans, staff screening and training policies, health and medication procedures, check-in and check-out procedures, parent letters, incident forms and checklists. It interviews the member about their camp (a few questions at a time, as many rounds as it takes), researches the law, then writes each document from scratch for that camp. Members preview it, ask for changes in chat, and download a Word file. Every document is marked as a draft for review;
 - **cites the law it read:** every legal point links to the actual section text.
 
 **Status:** Built November 2026 from Pip (`omag-web/omag-hr`) and not yet deployed. See [`docs/deploy.md`](docs/deploy.md) for first-time setup.
@@ -22,17 +22,24 @@ Ranger is **a separate system from Pip**. It has its own repo, AWS stack (`range
 | [`backend/`](backend/) | **The API.** AWS Lambda + OpenAI GPT-5.6 on Amazon Bedrock + DynamoDB, deployed with AWS SAM (`template.yaml`). |
 | [`backend/src/prompt.mjs`](backend/src/prompt.mjs) | Ranger's instructions: a locked core (citations, never fabricate findings or approvals, drafts aren't compliance, child privacy, stay on topic) plus OMAG's editable guidance, which carries the GPT's five workflows (discovery, applicability, hazard assessment, EAP, oversight). |
 | [`knowledge/sources.json`](knowledge/sources.json) | What the statute library contains: Title 63 (camp safety law, § 681, Emergency Management Act), Title 51 (Tort Claims Act), Title 82 (Floodplain Management Act), and the enrolled HB 1675 as a fallback until Title 63 is republished. |
-| [`knowledge/templates/`](knowledge/templates/) | The starter Word templates as an importable pack, and the script that builds it. |
+| [`knowledge/templates/`](knowledge/templates/) | Starter Word templates (an importable pack) and the script that builds them. Ranger doesn't fill these in any more; they can become OMAG's reference samples later (see "Documents" below). |
 | [`docs/`](docs/) | [`deploy.md`](docs/deploy.md) (setup and day-to-day), [`scope.md`](docs/scope.md) (plan and decisions), [`gpt-instructions.md`](docs/gpt-instructions.md) (the CustomGPT's original instructions). |
 
 ## How it works
 
 1. A member picks a program type and asks a question. The page sends the conversation and program type to `POST /chat`.
-2. The Lambda gives the model Ranger's system prompt, starting-point sections for that program type, and tools: `search_law`, `get_sections`, and `offer_document`.
+2. The Lambda gives the model Ranger's system prompt, starting-point sections for that program type, and tools: `search_law`, `get_sections`, and `write_document`.
 3. Ranger researches, then answers, citing sections as `[[63-683.24E]]`. Only citations to sections it actually read are kept and shown as clickable chips.
-4. When an interview has gathered enough, Ranger offers a document. The member gets a form already filled in with what they said, checks it, and downloads the Word file.
+4. When a member asks for a document, Ranger interviews them about their camp until it has what it needs, researches the law, and writes the document from scratch with `write_document` (`backend/src/drafts.mjs`). The draft comes back with the answer as structured blocks. The member page shows a card with **Preview** (rendered in the browser, [brackets] highlighted) and **Download Word** (built on the server by `POST /documents/docx` with the `docx` package). To revise, the member just asks: the newest draft rides along with their next message and reaches the model in `<current_draft>` tags.
 5. OMAG documents and web pages added in the admin panel (OEM's camp safety page and checklist, for example) are searched alongside the statutes and cited as guidance.
 6. Each question is logged (with citations, tokens and rating) for analytics and review. There are no accounts: conversation history lives in the member's browser.
+
+## Documents
+
+- **Writing:** `write_document` takes the whole document as blocks (heading, paragraph, bullets, numbered, signature) with `**bold**` and `[[63-683.24E]]` citations. Citations become formal cites ("63 O.S. § 683.24E") only for sections Ranger read with `get_sections` in that conversation; the rest are dropped. Open choices stay in [brackets]. Ranger never invents names, phone numbers, addresses, dates or amounts.
+- **Time:** writing a long document can take a few minutes. The member sees "Writing your document. Longer documents take a few minutes"; the stream sends a ping every 15 seconds. Limits: 16,000 output tokens per model call, 8 tool rounds, 4 minutes of research, a 10-minute Lambda timeout (the slow-answer alarm fires at 8 minutes). A document written in the last round is still kept.
+- **Logs** keep a document's title, never its text. Word downloads count as documents on the Analytics page.
+- **OMAG samples (later):** the admin panel's **Document templates** page still stores Word templates. When OMAG has camp safety samples there, Ranger can read one with a `get_sample` tool as a guide to what a document should cover (never a form to fill in), like Pip does. The code is in place but switched off: to turn it on, pass `templates` and `loadSample` to `runAgent` in `backend/src/handler.mjs` (the comment there shows how).
 
 ## The program type
 
@@ -43,7 +50,7 @@ Pip's "form of government" picker became the **program type**, because it decide
 ```bash
 cd backend
 npm install
-npm test                 # 65 tests, no AWS needed (uses a small test library in test/fixtures/)
+npm test                 # 78 tests, no AWS needed (uses a small test library in test/fixtures/)
 LIBRARY_PATH=test/fixtures/library.json npm run dev:mock
                          # http://localhost:8787 with a scripted stand-in model
                          # admin panel at http://localhost:8787/admin/ (no sign-in locally)

@@ -39,9 +39,9 @@ export function buildRequest({ modelId, system, messages, tools, maxTokens }) {
  * resolves with { content, stopReason, usage } where content is the assistant
  * message content (text + toolUse blocks) in Converse format.
  */
-export async function converseTurn({ system, messages, tools, onText, modelId, maxTokens }) {
+export async function converseTurn({ system, messages, tools, onText, onToolStart, modelId, maxTokens }) {
   modelId ||= process.env.MODEL_ID;
-  if ((process.env.MODEL_MODE || '').toLowerCase() === 'mock') return mockTurn({ messages, onText, tools });
+  if ((process.env.MODEL_MODE || '').toLowerCase() === 'mock') return mockTurn({ messages, onText, onToolStart, tools });
 
   // Plain HTTP/1.1 rather than the SDK's HTTP/2 default: ConverseStream works the
   // same either way, and HTTP/1.1 also gets through office firewalls that inspect
@@ -69,6 +69,7 @@ export async function converseTurn({ system, messages, tools, onText, modelId, m
     if (ev.contentBlockStart?.start?.toolUse) {
       const t = ev.contentBlockStart.start.toolUse;
       current = { toolUse: { toolUseId: t.toolUseId, name: t.name, inputJson: '' } };
+      onToolStart?.(t.name);
       content.push(current);
     } else if (ev.contentBlockDelta?.delta) {
       const d = ev.contentBlockDelta.delta;
@@ -102,20 +103,32 @@ export async function converseTurn({ system, messages, tools, onText, modelId, m
  * Turn 2: read the top two results.
  * Turn 3: write an answer citing them.
  */
-async function mockTurn({ messages, onText, tools = [] }) {
+async function mockTurn({ messages, onText, onToolStart, tools = [] }) {
   const last = messages[messages.length - 1];
   const toolResults = (last.content || []).filter((b) => b.toolResult);
-  const userText = [...messages].reverse().find((m) => m.role === 'user' && m.content.some((b) => b.text))?.content.find((b) => b.text)?.text || '';
+  // The member's own words are the last text block (a <current_draft> block can come before it).
+  const userText = [...messages].reverse().find((m) => m.role === 'user' && m.content.some((b) => b.text))?.content.filter((b) => b.text).pop()?.text || '';
   const usage = { inputTokens: 1200, outputTokens: 180, cacheReadInputTokens: 0 };
 
-  const canOffer = tools.some((t) => t.toolSpec?.name === 'offer_document');
-  if (!toolResults.length && canOffer && /\b(build|create|draft|write|make|need)\b.*\b(policy|plan|assessment|document|disclosure|acknowledg)/i.test(userText)) {
-    const id = /hazard assess/i.test(userText) ? 'hazard-assessment' : /acknowledg|disclos/i.test(userText) ? 'hazard-disclosure' : 'emergency-action-plan';
-    const town = userText.match(/\b((?:Town|City) of [A-Z][\w ]+?)\b(?=[.,?!]|$)/);
-    return { stopReason: 'tool_use', usage, content: [{ toolUse: { toolUseId: 'mock-doc', name: 'offer_document', input: { template_id: id, ...(town ? { prefill: { municipality_name: town[1] } } : {}) } } }] };
+  const canWrite = tools.some((t) => t.toolSpec?.name === 'write_document');
+  if (!toolResults.length && canWrite && /\b(build|create|draft|write|make|need|change|update|revise|add)\b.*\b(plan|policy|procedure|assessment|document|letter|form|checklist|it)\b/i.test(userText)) {
+    const town = userText.match(/\b((?:Town|City) of [A-Z][\w ]+?)\b(?=[.,?!]|$)/)?.[1] || 'Your Municipality';
+    const camp = userText.match(/\b(Camp [A-Z][\w]+)/)?.[1] || '[Camp name]';
+    onToolStart?.('write_document');
+    const revising = messages.some((m) => m.content.some((b) => /<current_draft>/.test(b.text || '')));
+    return { stopReason: 'tool_use', usage, content: [{ toolUse: { toolUseId: 'mock-doc', name: 'write_document', input: {
+      title: 'Severe Weather and Lightning Plan', subtitle: `${camp}, ${town}, Oklahoma`,
+      blocks: [
+        { type: 'heading', level: 1, text: 'Purpose' },
+        { type: 'paragraph', text: `This plan sets out how **${camp}** watches the weather and moves campers to shelter.${revising ? ' (Revised.)' : ''}` },
+        { type: 'heading', level: 1, text: 'Who decides' },
+        { type: 'bullets', items: ['The [Camp Director] orders shelter or evacuation', 'Backup: [Assistant Director]'] },
+        { type: 'numbered', items: ['Monitor NOAA weather radio', 'Stop outdoor activities at the first thunder', 'Move to [primary shelter]'] },
+        { type: 'signature', items: ['Camp Director', 'Parks and Recreation Director'] }
+      ] } } }] };
   }
   if (toolResults.length && toolResults[0].toolResult.content[0].json?.shown) {
-    const text = `**Mock answer.** I can build OMAG's ${toolResults[0].toolResult.content[0].json.title} for you. Review the answers and you'll get the Word file to finish and review before filing.`;
+    const text = `**Mock answer.** I wrote a ${toolResults[0].toolResult.content[0].json.title} for your camp. Fill in the [bracketed] items and review it with your municipal attorney, county emergency management or OMAG before you use it.`;
     onText?.(text);
     return { stopReason: 'end_turn', usage, content: [{ text }] };
   }

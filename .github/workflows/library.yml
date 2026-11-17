@@ -45,7 +45,8 @@ jobs:
       - name: Commit if changed
         if: github.event_name == 'workflow_dispatch'
         run: |
-          if git diff --quiet -- backend/data/library.json; then
+          # `git status` (not `git diff`) so the very first library, not yet tracked, counts as a change.
+          if [ -z "$(git status --porcelain -- backend/data/library.json)" ]; then
             echo "Library unchanged."
             exit 0
           fi
