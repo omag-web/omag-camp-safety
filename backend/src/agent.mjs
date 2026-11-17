@@ -67,7 +67,7 @@ export function markerIds(text) {
  * emit(event) receives {type:'status'|'text', ...} as things happen.
  * Returns { text, citations, usage, toolCalls }.
  */
-export async function runAgent({ history, form, city, library, emit = () => {}, turn = converseTurn, guidance, modelId, fallbackModelId, templates = [], loadSample, timeBudgetMs = TIME_BUDGET_MS, now = Date.now }) {
+export async function runAgent({ history, form, city, library, emit = () => {}, turn = converseTurn, guidance, modelId, fallbackModelId, samples = [], loadSample, timeBudgetMs = TIME_BUDGET_MS, now = Date.now }) {
   const started = now();
   let activeModel = modelId;
   let fellBack = false;
@@ -86,8 +86,8 @@ export async function runAgent({ history, form, city, library, emit = () => {}, 
       return await turn({ ...args, modelId: activeModel, onText });
     }
   };
-  const system = buildSystemPrompt({ form: FORMS[form] ? form : undefined, city, guidance, omagDocs: library.omagTitles || [], templates });
-  const tools = [...TOOL_SPECS, WRITE_DOCUMENT_SPEC, ...(templates.length && loadSample ? [GET_SAMPLE_SPEC] : [])];
+  const system = buildSystemPrompt({ form: FORMS[form] ? form : undefined, city, guidance, omagDocs: library.omagTitles || [], samples });
+  const tools = [...TOOL_SPECS, WRITE_DOCUMENT_SPEC, ...(samples.length && loadSample ? [GET_SAMPLE_SPEC] : [])];
   const drafts = [];
   // Writing a document produces no text for a while, so say what's happening.
   const onToolStart = (name) => { if (name === 'write_document') emit({ type: 'status', text: 'Writing your document. Longer documents take a few minutes' }); };
@@ -135,7 +135,7 @@ export async function runAgent({ history, form, city, library, emit = () => {}, 
 
     const results = [];
     for (const { toolUse } of uses) {
-      const r = await runTool(toolUse.name, toolUse.input, library, { templates, seen, drafts, loadSample });
+      const r = await runTool(toolUse.name, toolUse.input, library, { samples, seen, drafts, loadSample });
       r.ids.forEach((id) => seen.add(id));
       // Logs keep a document's title, not its text.
       toolCalls.push({ name: toolUse.name, input: toolUse.name === 'write_document' ? { title: String(toolUse.input?.title || '').slice(0, 200) } : toolUse.input });

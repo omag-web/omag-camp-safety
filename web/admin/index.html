@@ -118,20 +118,12 @@ pre.log{white-space:pre-wrap;word-break:break-word;background:#f8f5ee;border:1px
 .fb{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
 .fb:last-child{border-bottom:none}
 
-/* templates */
-.tpl-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start;padding:14px 4px;border-bottom:1px solid var(--line)}
-.tpl-row:last-child{border-bottom:none}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.chip{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;background:#eeeadf;color:var(--ink-2);font-size:12px;font-weight:600}
-.chip.on{background:var(--accent-bg);color:var(--accent-dk)}
-.tq{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;background:#fff}
-.tq .full{grid-column:1 / -1}.tq .half{grid-column:span 2}
-.tq-head{grid-column:1 / -1;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.tq-key{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;color:var(--accent-dk);background:var(--accent-bg);border-radius:6px;padding:2px 7px}
-.tq.unused{opacity:.65;border-style:dashed}
-.files td,.files th{padding:8px 10px}
-.syntax code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;background:#f3efe4;border-radius:5px;padding:1px 5px}
-@media (max-width:980px){.tq{grid-template-columns:1fr 1fr}.tq .half{grid-column:1 / -1}}
+/* sample documents */
+.smp-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start;padding:14px 4px;border-bottom:1px solid var(--line)}
+.smp-row:last-child{border-bottom:none}
+.smp-row .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.smp-row .chip{font-size:12px;padding:2px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted,#6b6b6b);background:transparent}
+.smp-row .chip.on{border-color:transparent;background:#e3efe6;color:#245a3b;font-weight:600}
 /* chat preview */
 .chat{display:flex;flex-direction:column;gap:12px;max-height:520px;overflow:auto;padding:4px 2px 2px}
 .q{align-self:flex-end;background:var(--accent-bg);border-radius:12px 12px 3px 12px;padding:8px 12px;max-width:88%;font-size:14px}
@@ -237,7 +229,7 @@ h1,h2,h3,.brand-name{font-family:'Bitter',Georgia,serif;letter-spacing:-.005em}
       <button data-page="analytics" aria-current="page">Analytics</button>
       <button data-page="instructions">Instructions</button>
       <button data-page="documents">OMAG documents</button>
-      <button data-page="templates">Document templates</button>
+      <button data-page="samples">Sample documents</button>
       <button data-page="conversations">Conversations</button>
       <button data-page="messages">Talk to OMAG <span class="count" id="msg-count" hidden></span></button>
       <button data-page="settings">Settings</button>
@@ -277,7 +269,7 @@ h1,h2,h3,.brand-name{font-family:'Bitter',Georgia,serif;letter-spacing:-.005em}
         <div class="card"><h2>Who's asking</h2><p class="sub">Program type</p><div id="an-forms"></div><p class="sub" style="margin:18px 0 8px" id="an-cities-sub">Municipalities (as typed by members)</p><div id="an-cities"></div></div>
       </div>
       <div class="grid g2" style="margin-top:16px">
-        <div class="card"><h2>Documents built</h2><p class="sub" id="an-docs-sub">From OMAG's templates</p><div id="an-docs"></div></div>
+        <div class="card"><h2>Documents written</h2><p class="sub" id="an-docs-sub">Word files members downloaded</p><div id="an-docs"></div></div>
         <div class="card"><h2>Recent 👎 answers</h2><p class="sub">Worth reading: these show where Ranger's instructions or OMAG documents could help.</p><div id="an-feedback"></div></div>
       </div>
       <div class="card" style="margin-top:16px"><h2>Ranger's setup</h2><div id="ov-setup" class="hint" style="font-size:14px;line-height:1.8"></div></div>
@@ -392,33 +384,27 @@ h1,h2,h3,.brand-name{font-family:'Bitter',Georgia,serif;letter-spacing:-.005em}
       <div id="msg-list" class="grid"></div>
     </section>
 
-    <!-- Document templates -->
-    <section data-section="templates" hidden>
-      <div id="tpl-list-view">
+    <!-- Sample documents -->
+    <section data-section="samples" hidden>
+      <div id="smp-list-view">
         <div class="page-head">
-          <div><h1>Document templates</h1><p>OMAG's Word documents that members fill in and download, such as the hazard assessment and emergency action plan. Upload a Word file with <code>{{fields}}</code> where answers go; Ranger finds them and asks members those questions. Members see the templates that are switched on.</p></div>
-          <div class="row">
-            <button class="btn" id="tpl-import-btn">Import a template pack</button>
-            <input type="file" id="tpl-import-file" accept=".zip" class="sr-only">
-            <button class="btn" id="tpl-export">Download all (backup)</button>
-            <button class="btn primary" id="tpl-new">New template</button>
-          </div>
+          <div><h1>Sample documents</h1><p>OMAG's example plans, policies and forms. When a member asks Ranger to write that kind of document, Ranger reads the matching sample as a guide to what it should cover, then writes the member's document from scratch for their camp. It never copies a sample's wording, names or numbers. Only samples that are switched on are used.</p></div>
+          <div class="row"><button class="btn primary" id="smp-new">New sample</button></div>
         </div>
-        <div class="card" style="padding:4px 14px"><div id="tpl-table"></div></div>
-        <details class="card" style="margin-top:16px"><summary>How to make or update a template</summary>
-          <div class="syntax hint" style="font-size:13.5px;line-height:1.7;margin-top:8px;color:var(--ink-2)">
-            <p style="margin:0 0 8px">Open the Word file and type a field name in double braces wherever a member's answer should go, for example <code>{{municipality_name}}</code> or <code>{{pay_period}}</code>. Names use lowercase letters, numbers and underscores. Then upload the file here; Ranger adds a question for each new field, and you can write the question and help text.</p>
+        <div class="card" style="padding:4px 14px"><div id="smp-table"></div></div>
+        <details class="card" style="margin-top:16px"><summary>What makes a good sample</summary>
+          <div class="hint" style="font-size:13.5px;line-height:1.7;margin-top:8px;color:var(--ink-2)">
             <ul style="margin:0;padding-left:18px">
-              <li><code>{{sick_wait_months | words}}</code> prints a number as words (3 → three). Use <code>| Words</code> for a capital letter, <code>| upper</code>, <code>| lower</code> or <code>| title</code> for case.</li>
-              <li><code>{{#offers_comp_time}}</code> … <code>{{/offers_comp_time}}</code> around paragraphs includes them only if the member answers Yes. <code>{{^offers_comp_time}}</code> … <code>{{/offers_comp_time}}</code> includes them only for No. Put these tags on their own lines.</li>
-              <li>Always available without a question: <code>{{program_type}}</code> (e.g. Youth camp or outdoor program), <code>{{today}}</code>, <code>{{year}}</code>.</li>
-              <li>Upload one file for every program type, or separate files per type (a recreational campground version of the emergency action plan, say). Members get the file for their type, or the every-type file if there isn't one.</li>
-              <li>Unanswered questions print as a blank line (________) so the document can be finished by hand.</li>
+              <li>Upload the Word file as it is. No fields, tags or questions are needed.</li>
+              <li>One good, complete example per kind of document is plenty: an emergency action plan, a water safety plan, a medication procedure, and so on.</li>
+              <li>Take out real names, phone numbers and addresses first. Ranger won't copy them, but there's no reason to store them.</li>
+              <li>Write a clear one-line description. It's how Ranger decides which sample matches a request, e.g. “Water safety plan: swim tests, lifeguards, ratios, buddy checks”.</li>
+              <li>A sample can have a separate version for one program type, such as a recreational campground version of the emergency action plan. Members of that type get that version; everyone else gets the one for every program type.</li>
             </ul>
           </div>
         </details>
       </div>
-      <div id="tpl-edit-view" hidden></div>
+      <div id="smp-edit-view" hidden></div>
     </section>
 
     <!-- Settings -->
@@ -1147,225 +1133,130 @@ loaders.messages = async () => {
 };
 $('#msg-list').addEventListener('click', (e) => { const b = e.target.closest('[data-conv]'); if (b) openConversation(b.dataset.conv); });
 
-/* ================= DOCUMENT TEMPLATES ================= */
-let tplList = [], tplMeta = {}, tplCur = null, tplDirty = false;
-const VARIANT_ORDER = ['all', 'camp', 'facility', 'campground', 'unsure'];
-const TYPE_LABEL = { text: 'Short text', textarea: 'Long text', number: 'Number', date: 'Date', select: 'Choice', yesno: 'Yes / No' };
-const PREFILL_LABEL = { '': 'Nothing', municipality: 'Municipality name', city_name_only: 'Name without “City of”', today: 'Today’s date' };
-function b64Download(b64, filename, type) {
-  const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([bytes], { type })); a.download = filename;
-  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 3000);
-}
-function renderTplList() {
-  $('#tpl-table').innerHTML = tplList.length ? tplList.map((t) => {
-    const files = VARIANT_ORDER.filter((v) => t.variants[v]);
-    return `<div class="tpl-row">
+/* ================= SAMPLE DOCUMENTS ================= */
+let smpList = [], smpMeta = {}, smpCur = null, smpDirty = false;
+const VERSION_ORDER = ['all', 'camp', 'facility', 'campground', 'unsure'];
+const versionLabel = (v) => smpMeta.versions?.[v] || v;
+function renderSmpList() {
+  $('#smp-table').innerHTML = smpList.length ? smpList.map((t) => {
+    const files = VERSION_ORDER.filter((v) => t.files[v]);
+    return `<div class="smp-row">
       <div><div class="row" style="gap:8px"><strong>${esc(t.title)}</strong>${t.enabled ? '<span class="pill ok">On</span>' : '<span class="pill muted">Off</span>'}</div>
-        <div class="hint" style="margin-top:2px">${esc(t.description || 'No description')}</div>
-        <div class="chips">${files.length ? files.map((v) => `<span class="chip on" title="${esc(t.variants[v].filename)}">${esc(tplMeta.variants?.[v] || v)}</span>`).join('') : '<span class="chip">No Word file yet</span>'}<span class="chip">${t.fields.length} question${t.fields.length === 1 ? '' : 's'}</span></div></div>
-      <div class="row" style="flex-wrap:nowrap"><label class="row hint" style="gap:6px;white-space:nowrap"><input type="checkbox" data-tpl-toggle="${esc(t.id)}" ${t.enabled ? 'checked' : ''}> Members can use it</label><button class="btn sm" data-tpl-edit="${esc(t.id)}">Edit</button></div>
+        <div class="hint" style="margin-top:2px">${esc(t.description || 'No description yet: add one so Ranger knows when to use it')}</div>
+        <div class="chips">${files.length ? files.map((v) => `<span class="chip on" title="${esc(t.files[v].filename)}">${esc(versionLabel(v))}</span>`).join('') : '<span class="chip">No Word file yet</span>'}</div></div>
+      <div class="row" style="flex-wrap:nowrap"><label class="row hint" style="gap:6px;white-space:nowrap"><input type="checkbox" data-smp-toggle="${esc(t.id)}" ${t.enabled ? 'checked' : ''}> Ranger uses it</label><button class="btn sm" data-smp-edit="${esc(t.id)}">Edit</button></div>
     </div>`;
-  }).join('') : '<div class="empty">No templates yet. Import OMAG’s template pack, or create one with <strong>New template</strong>.</div>';
+  }).join('') : '<div class="empty">No samples yet. Ranger writes documents without them; add one with <strong>New sample</strong> when OMAG has an example to share.</div>';
 }
-loaders.templates = async () => {
-  if (tplCur && !$('#tpl-edit-view').hidden) return;
-  const r = await api('GET', '/admin/templates');
-  tplList = r.templates; tplMeta = r; renderTplList();
+loaders.samples = async () => {
+  if (smpCur && !$('#smp-edit-view').hidden) return;
+  const r = await api('GET', '/admin/samples');
+  smpList = r.samples; smpMeta = r; renderSmpList();
 };
-$('#tpl-table').addEventListener('change', async (e) => {
-  const c = e.target.closest('[data-tpl-toggle]'); if (!c) return;
-  try { await api('PUT', `/admin/templates/${c.dataset.tplToggle}`, { enabled: c.checked }); toast(c.checked ? 'Members can use this template now.' : 'Template switched off.'); await loaders.templates(); }
+$('#smp-table').addEventListener('change', async (e) => {
+  const c = e.target.closest('[data-smp-toggle]'); if (!c) return;
+  try { await api('PUT', `/admin/samples/${c.dataset.smpToggle}`, { enabled: c.checked }); toast(c.checked ? 'Ranger will use this sample from now on.' : 'Ranger won’t use this sample.'); await loaders.samples(); }
   catch (err) { c.checked = !c.checked; fail(err); }
 });
-$('#tpl-table').addEventListener('click', (e) => { const b = e.target.closest('[data-tpl-edit]'); if (b) openTplEditor(b.dataset.tplEdit); });
-$('#tpl-new').addEventListener('click', async () => {
-  const title = await askText('Name of the document (members see this), e.g. “Drug and Alcohol Testing Policy”:'); if (!title?.trim()) return;
-  try { const r = await api('POST', '/admin/templates', { title: title.trim() }); await openTplEditor(r.template.id); } catch (err) { fail(err); }
+$('#smp-table').addEventListener('click', (e) => { const b = e.target.closest('[data-smp-edit]'); if (b) openSmpEditor(b.dataset.smpEdit); });
+$('#smp-new').addEventListener('click', async () => {
+  const title = await askText('What kind of document is this sample? For example “Water safety plan”.', '');
+  if (!title?.trim()) return;
+  try { const r = await api('POST', '/admin/samples', { title: title.trim() }); await openSmpEditor(r.sample.id); } catch (err) { fail(err); }
 });
-$('#tpl-export').addEventListener('click', async (e) => {
-  e.target.disabled = true;
-  try { const r = await api('GET', '/admin/templates-export'); b64Download(r.data, r.filename, 'application/zip'); } catch (err) { fail(err); } finally { e.target.disabled = false; }
-});
-$('#tpl-import-btn').addEventListener('click', () => $('#tpl-import-file').click());
-$('#tpl-import-file').addEventListener('change', async (e) => {
-  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-  if (!await ask(`Import “${f.name}”? Templates in the pack replace any existing templates with the same name.`)) return;
-  try {
-    const up = await api('POST', '/admin/templates-import/upload');
-    const put = await fetch(up.uploadUrl.startsWith('/') ? location.origin + up.uploadUrl : up.uploadUrl, { method: 'PUT', headers: { 'content-type': up.contentType }, body: f });
-    if (!put.ok) throw new Error('Upload failed. Try again.');
-    const r = await api('POST', '/admin/templates-import', { key: up.key });
-    tplList = r.templates; renderTplList();
-    toast(`Imported ${r.imported.map((x) => x.title).join(', ')}.`);
-  } catch (err) { fail(err); }
-});
-
-/* --- editor --- */
-function optText(opts) { return (opts || []).map((o) => [o.value, o.label !== o.value ? o.label : '', o.text && o.text !== o.label ? o.text : ''].join(' | ').replace(/( \| )+$/, '')).join('\n'); }
-function parseOpts(text) {
-  return String(text || '').split('\n').map((l) => l.trim()).filter(Boolean).map((l) => {
-    const [value, label, ...rest] = l.split('|').map((x) => x.trim());
-    return { value: value.toLowerCase().replace(/[^a-z0-9_-]+/g, '_').replace(/^_|_$/g, '') || value, label: label || value, ...(rest.length && rest.join(' | ') ? { text: rest.join(' | ') } : {}) };
-  });
-}
-function usedIn(key) { return VARIANT_ORDER.filter((v) => tplCur.variants[v]?.tags.includes(key)); }
-function questionHtml(f, i) {
-  const used = usedIn(f.key);
-  return `<div class="tq${used.length ? '' : ' unused'}" data-q="${i}">
-    <div class="tq-head"><div class="row" style="gap:8px"><span class="tq-key">{{${esc(f.key)}}}</span><span class="hint">${used.length ? (used.length === Object.keys(tplCur.variants).length ? 'in every file' : 'in: ' + used.map((v) => esc(tplMeta.variants?.[v] || v)).join(', ')) : 'not in any uploaded file'}</span></div>
-      <div class="row">${i > 0 ? `<button class="icon-btn" type="button" data-q-up="${i}" aria-label="Move up">↑</button>` : ''}${used.length ? '' : `<button class="btn sm danger" type="button" data-q-del="${i}">Remove</button>`}</div></div>
-    <div class="field half"><label>Question members see</label><input class="input" data-k="label" value="${esc(f.label)}"></div>
-    <div class="field"><label>Answer type</label><select class="select" data-k="type">${(tplMeta.fieldTypes || Object.keys(TYPE_LABEL)).map((t) => `<option value="${t}"${t === f.type ? ' selected' : ''}>${TYPE_LABEL[t] || t}</option>`).join('')}</select></div>
-    <div class="field"><label>Section heading</label><input class="input" data-k="group" value="${esc(f.group || '')}" placeholder="e.g. Pay"></div>
-    <div class="field full"><label>Help text</label><textarea data-k="help" rows="2" placeholder="Examples, what it prints as, or a legal note">${esc(f.help || '')}</textarea></div>
-    <div class="field"><label>Default answer</label><input class="input" data-k="default" value="${esc(f.default ?? '')}"></div>
-    <div class="field"><label>Fill in automatically with</label><select class="select" data-k="prefill">${(tplMeta.prefills || Object.keys(PREFILL_LABEL)).map((p) => `<option value="${p}"${p === (f.prefill || '') ? ' selected' : ''}>${PREFILL_LABEL[p] ?? p}</option>`).join('')}</select></div>
-    <div class="field" style="justify-content:flex-end"><label class="row" style="gap:6px;font-weight:600"><input type="checkbox" data-k="required" ${f.required ? 'checked' : ''}> Required</label></div>
-    <div class="field full" ${f.type === 'select' ? '' : 'hidden'} data-opts><label>Choices: one per line, as <span class="mono">value | what members see | text printed in the document</span></label><textarea data-k="options" rows="4" class="mono">${esc(optText(f.options))}</textarea></div>
-  </div>`;
-}
-function readQuestions() {
-  return $$('#tpl-questions .tq').map((el) => {
-    const f = tplCur.fields[Number(el.dataset.q)];
-    const g = (k) => $(`[data-k="${k}"]`, el);
-    const type = g('type').value;
-    const out = { key: f.key, label: g('label').value.trim(), type, group: g('group').value.trim(), help: g('help').value.trim(), prefill: g('prefill').value, required: g('required').checked };
-    const d = g('default').value.trim();
-    if (d !== '') out.default = type === 'number' ? Number(d) : type === 'yesno' ? /^(y|yes|true)$/i.test(d) : d;
-    if (type === 'select') out.options = parseOpts(g('options').value);
-    return out;
-  });
-}
-function renderTplEditor() {
-  const t = tplCur;
-  const filesRows = VARIANT_ORDER.map((v) => {
-    const f = t.variants[v];
-    return `<tr><td style="width:220px"><strong>${esc(tplMeta.variants?.[v] || v)}</strong>${v === 'all' ? '<div class="hint">Used when there isn’t a file for that form</div>' : ''}</td>
-      <td>${f ? `${esc(f.filename)}<div class="hint">${f.tags.length} field${f.tags.length === 1 ? '' : 's'} · uploaded ${fmtDate(f.uploadedAt)}</div>` : '<span class="hint">—</span>'}</td>
-      <td style="text-align:right;white-space:nowrap"><label class="btn sm" style="cursor:pointer">${f ? 'Replace' : 'Upload'}<input type="file" accept=".docx" class="sr-only" data-variant-upload="${v}"></label>${f ? ` <button class="btn sm danger" type="button" data-variant-remove="${v}">Remove</button>` : ''}</td></tr>`;
+function renderSmpEditor() {
+  const t = smpCur;
+  const rows = VERSION_ORDER.map((v) => {
+    const f = t.files[v];
+    return `<tr><td style="width:220px"><strong>${esc(versionLabel(v))}</strong>${v === 'all' ? '<div class="hint">Used when there isn’t a version for the member’s program type</div>' : ''}</td>
+      <td>${f ? `${esc(f.filename)}<div class="hint">${(f.chars || 0).toLocaleString()} characters of text · uploaded ${fmtDate(f.uploadedAt)}</div>` : '<span class="hint">—</span>'}</td>
+      <td style="text-align:right;white-space:nowrap"><label class="btn sm" style="cursor:pointer">${f ? 'Replace' : 'Upload'}<input type="file" accept=".docx" class="sr-only" data-version-upload="${v}"></label>${f ? ` <button class="btn sm danger" type="button" data-version-remove="${v}">Remove</button>` : ''}</td></tr>`;
   }).join('');
-  $('#tpl-edit-view').innerHTML = `
+  $('#smp-edit-view').innerHTML = `
     <div class="page-head">
-      <div><button class="btn sm" id="tpl-back">← All templates</button><h1 style="margin-top:10px">${esc(t.title)}</h1><p>${t.enabled ? 'Members can use this template.' : 'Switched off: members don’t see it yet.'}</p></div>
-      <div class="row">
-        <label for="tpl-test-form" class="sr-only">Program type for the test</label>
-        <select class="select" id="tpl-test-form" style="width:auto">${['camp', 'facility', 'campground', 'unsure'].map((v) => `<option value="${v}">${esc(tplMeta.variants?.[v] || v)}</option>`).join('')}</select>
-        <button class="btn" id="tpl-test">Test with sample answers</button>
-        <button class="btn primary" id="tpl-save">Save</button>
-      </div>
+      <div><button class="btn sm" id="smp-back">← All samples</button><h1 style="margin-top:10px">${esc(t.title)}</h1><p>${t.enabled ? 'Ranger reads this sample when it writes this kind of document.' : 'Switched off: Ranger doesn’t use it yet.'}</p></div>
+      <div class="row"><button class="btn primary" id="smp-save">Save</button></div>
     </div>
     <div class="grid" style="gap:16px">
       <div class="card"><h2>About</h2>
         <div class="grid g2" style="margin-top:10px;gap:12px">
-          <div class="field"><label for="tpl-title">Title members see</label><input class="input" id="tpl-title" value="${esc(t.title)}"></div>
-          <div class="field"><label for="tpl-order">Order in the list</label><input class="input" id="tpl-order" type="number" min="0" max="99" value="${t.order ?? 99}"></div>
-          <div class="field" style="grid-column:1 / -1"><label for="tpl-desc">Short description</label><input class="input" id="tpl-desc" value="${esc(t.description || '')}" maxlength="400"></div>
+          <div class="field"><label for="smp-title">Kind of document</label><input class="input" id="smp-title" value="${esc(t.title)}"></div>
+          <div class="field"><label for="smp-order">Order in the list</label><input class="input" id="smp-order" type="number" min="0" max="99" value="${t.order ?? 99}"></div>
+          <div class="field" style="grid-column:1 / -1"><label for="smp-desc">What it covers</label><input class="input" id="smp-desc" value="${esc(t.description || '')}" maxlength="400" placeholder="e.g. Water safety plan: swim tests, lifeguards, ratios, buddy checks"><span class="hint">Ranger uses this line to pick the right sample for a request.</span></div>
         </div>
-        <label class="row" style="gap:8px;margin-top:12px;font-weight:600"><input type="checkbox" id="tpl-enabled" ${t.enabled ? 'checked' : ''}> Members can use this template</label>
+        <label class="row" style="gap:8px;margin-top:12px;font-weight:600"><input type="checkbox" id="smp-enabled" ${t.enabled ? 'checked' : ''}> Ranger uses this sample</label>
       </div>
-      <div class="card"><h2>Word files</h2><p class="sub">One file for every program type, or a separate version for some. Ranger reads the <code>{{fields}}</code> in each file.</p><table class="files"><tbody>${filesRows}</tbody></table><div id="tpl-upload-status" class="hint" role="status" style="margin-top:8px"></div></div>
-      <div class="card"><h2>Before you adopt this</h2><p class="sub">Shown above the questions. Put a blank line between notes.</p><textarea id="tpl-notes" rows="6">${esc((t.notes || []).join('\n\n'))}</textarea></div>
-      <div class="card"><h2>Questions</h2><p class="sub">One for each field in the Word files. Members see them in this order, under their section headings.</p><div id="tpl-questions" class="grid" style="gap:10px">${t.fields.length ? t.fields.map(questionHtml).join('') : '<div class="empty">Upload a Word file with {{fields}} and the questions appear here.</div>'}</div></div>
-      <div class="card"><h2>Delete</h2><p class="sub">Removes the template and its Word files. Members lose access right away.</p><button class="btn danger" id="tpl-delete">Delete this template</button></div>
+      <div class="card"><h2>Word file</h2><p class="sub">Upload the sample as it is (.docx). Add a separate version only if one program type needs a different example.</p><table class="files"><tbody>${rows}</tbody></table><div id="smp-upload-status" class="hint" role="status" style="margin-top:8px"></div></div>
+      <div class="card"><h2>Delete</h2><p class="sub">Removes the sample and its Word files. Ranger stops using it right away.</p><button class="btn danger" id="smp-delete">Delete this sample</button></div>
     </div>`;
-  tplDirty = false;
+  smpDirty = false;
 }
-async function openTplEditor(id) {
+async function openSmpEditor(id) {
   try {
-    const r = await api('GET', `/admin/templates/${id}`);
-    tplCur = r.template; tplMeta = { ...tplMeta, ...r };
-    $('#tpl-list-view').hidden = true; $('#tpl-edit-view').hidden = false;
-    renderTplEditor(); window.scrollTo(0, 0);
+    const r = await api('GET', `/admin/samples/${id}`);
+    smpCur = r.sample; smpMeta = { ...smpMeta, ...r };
+    $('#smp-list-view').hidden = true; $('#smp-edit-view').hidden = false;
+    renderSmpEditor(); window.scrollTo(0, 0);
   } catch (err) { fail(err); }
 }
-function collectTpl() {
-  return {
-    title: $('#tpl-title').value, description: $('#tpl-desc').value, order: Number($('#tpl-order').value),
-    notes: $('#tpl-notes').value.split(/\n\s*\n/).map((x) => x.replace(/\s*\n\s*/g, ' ').trim()).filter(Boolean),
-    fields: readQuestions(), enabled: $('#tpl-enabled').checked
-  };
+async function saveSmp(quiet) {
+  const r = await api('PUT', `/admin/samples/${smpCur.id}`, { title: $('#smp-title').value, description: $('#smp-desc').value, order: Number($('#smp-order').value), enabled: $('#smp-enabled').checked });
+  smpCur = r.sample; renderSmpEditor();
+  if (!quiet) toast('Saved. Ranger uses the change within a minute.');
 }
-async function saveTpl(quiet) {
-  const r = await api('PUT', `/admin/templates/${tplCur.id}`, collectTpl());
-  tplCur = r.template; renderTplEditor();
-  if (!quiet) toast('Saved. Members see the changes within a minute.');
-}
-const tplEdit = $('#tpl-edit-view');
-tplEdit.addEventListener('input', () => { tplDirty = true; });
-const setUploadStatus = (t) => { const el = $('#tpl-upload-status'); if (el) el.textContent = t; };
-tplEdit.addEventListener('change', async (e) => {
-  if (!e.target.closest('[data-variant-upload]')) tplDirty = true;
-  const typeSel = e.target.closest('[data-k="type"]');
-  if (typeSel) $('[data-opts]', typeSel.closest('.tq')).hidden = typeSel.value !== 'select';
-  const up = e.target.closest('[data-variant-upload]');
-  if (up) {
-    const file = up.files[0]; up.value = ''; if (!file) return;
-    const variant = up.dataset.variantUpload;
-    try {
-      if (tplDirty) await saveTpl(true);
-      setUploadStatus(`Uploading ${file.name}…`);
-      const u = await api('POST', `/admin/templates/${tplCur.id}/upload`, { variant, filename: file.name, size: file.size });
-      const put = await fetch(u.uploadUrl.startsWith('/') ? location.origin + u.uploadUrl : u.uploadUrl, { method: 'PUT', headers: { 'content-type': u.contentType }, body: file });
-      if (!put.ok) throw new Error('Upload failed. Try again.');
-      setUploadStatus(`Reading ${file.name}…`);
-      const r = await api('POST', `/admin/templates/${tplCur.id}/attach`, { variant, key: u.key, filename: file.name });
-      tplCur = r.template; renderTplEditor();
-      setUploadStatus(`✓ ${file.name}: ${r.tags.length} field${r.tags.length === 1 ? '' : 's'} found${r.added.length ? `, ${r.added.length} new question${r.added.length === 1 ? '' : 's'} added below (${r.added.join(', ')}). Write the question text, then Save.` : '.'}`);
-    } catch (err) { setUploadStatus('✗ ' + err.message); }
-  }
+const smpEdit = $('#smp-edit-view');
+smpEdit.addEventListener('input', () => { smpDirty = true; });
+const setSmpStatus = (t) => { const el = $('#smp-upload-status'); if (el) el.textContent = t; };
+smpEdit.addEventListener('change', async (e) => {
+  const up = e.target.closest('[data-version-upload]');
+  if (!up) { smpDirty = true; return; }
+  const file = up.files[0]; up.value = ''; if (!file) return;
+  const version = up.dataset.versionUpload;
+  try {
+    if (smpDirty) await saveSmp(true);
+    setSmpStatus(`Uploading ${file.name}…`);
+    const u = await api('POST', `/admin/samples/${smpCur.id}/upload`, { version, filename: file.name, size: file.size });
+    const put = await fetch(u.uploadUrl.startsWith('/') ? location.origin + u.uploadUrl : u.uploadUrl, { method: 'PUT', headers: { 'content-type': u.contentType }, body: file });
+    if (!put.ok) throw new Error('Upload failed. Try again.');
+    setSmpStatus(`Reading ${file.name}…`);
+    const r = await api('POST', `/admin/samples/${smpCur.id}/attach`, { version, key: u.key, filename: file.name });
+    smpCur = r.sample; renderSmpEditor();
+    setSmpStatus(`✓ ${file.name}: ${r.chars.toLocaleString()} characters of text.${r.truncated ? ' It’s long, so Ranger reads the first 30,000 characters.' : ''}${smpCur.enabled ? '' : ' Tick “Ranger uses this sample” and Save when you’re ready.'}`);
+  } catch (err) { setSmpStatus('✗ ' + err.message); }
 });
-tplEdit.addEventListener('click', async (e) => {
+smpEdit.addEventListener('click', async (e) => {
   const t = e.target;
   try {
-    if (t.closest('#tpl-back')) {
-      if (tplDirty && !await ask('Leave without saving your changes?')) return;
-      tplCur = null; $('#tpl-edit-view').hidden = true; $('#tpl-list-view').hidden = false; await loaders.templates(); return;
+    if (t.closest('#smp-back')) {
+      if (smpDirty && !await ask('Leave without saving your changes?')) return;
+      smpCur = null; $('#smp-edit-view').hidden = true; $('#smp-list-view').hidden = false; await loaders.samples(); return;
     }
-    if (t.closest('#tpl-save')) { await saveTpl(); return; }
-    if (t.closest('#tpl-test')) {
-      if (tplDirty) await saveTpl(true);
-      const sample = {};
-      for (const f of tplCur.fields) sample[f.key] = f.default ?? ({ number: 3, date: new Date().toISOString().slice(0, 10), yesno: true, select: f.options?.[0]?.value }[f.type] ?? `[${f.label}]`);
-      if (!tplCur.fields.find((f) => f.key === 'municipality_name')?.default) sample.municipality_name = 'City of Example';
-      const r = await api('POST', `/admin/templates/${tplCur.id}/test`, { form: $('#tpl-test-form').value, values: sample });
-      b64Download(r.data, r.filename.replace(/\.docx$/, ' (TEST).docx'), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-      toast(`Test file downloaded (${tplMeta.variants?.[r.variant] || r.variant} version). Each answer shows the question in [brackets].`);
-      return;
+    if (t.closest('#smp-save')) { await saveSmp(); return; }
+    if (t.closest('#smp-delete')) {
+      if (!await ask(`Delete “${smpCur.title}” and its Word files? This can’t be undone.`)) return;
+      await api('DELETE', `/admin/samples/${smpCur.id}`); smpCur = null;
+      $('#smp-edit-view').hidden = true; $('#smp-list-view').hidden = false; await loaders.samples(); toast('Sample deleted.'); return;
     }
-    if (t.closest('#tpl-delete')) {
-      if (!await ask(`Delete “${tplCur.title}” and its Word files? This can’t be undone. (Tip: Download all (backup) first.)`)) return;
-      await api('DELETE', `/admin/templates/${tplCur.id}`); tplCur = null;
-      $('#tpl-edit-view').hidden = true; $('#tpl-list-view').hidden = false; await loaders.templates(); toast('Template deleted.'); return;
-    }
-    const rm = t.closest('[data-variant-remove]');
+    const rm = t.closest('[data-version-remove]');
     if (rm) {
-      if (!await ask(`Remove the ${tplMeta.variants?.[rm.dataset.variantRemove] || rm.dataset.variantRemove} file?`)) return;
-      if (tplDirty) await saveTpl(true);
-      const r = await api('POST', `/admin/templates/${tplCur.id}/remove-file`, { variant: rm.dataset.variantRemove });
-      tplCur = r.template; renderTplEditor(); return;
+      if (!await ask(`Remove the ${versionLabel(rm.dataset.versionRemove)} file?`)) return;
+      if (smpDirty) await saveSmp(true);
+      const r = await api('POST', `/admin/samples/${smpCur.id}/remove-file`, { version: rm.dataset.versionRemove });
+      smpCur = r.sample; renderSmpEditor();
     }
-    const del = t.closest('[data-q-del]');
-    if (del) { const fields = readQuestions(); fields.splice(Number(del.dataset.qDel), 1); tplCur.fields = fields; renderTplEditor(); tplDirty = true; return; }
-    const upq = t.closest('[data-q-up]');
-    if (upq) { const i = Number(upq.dataset.qUp); const fields = readQuestions(); [fields[i - 1], fields[i]] = [fields[i], fields[i - 1]]; tplCur.fields = fields; renderTplEditor(); tplDirty = true; }
   } catch (err) { fail(err); }
 });
-window.addEventListener('beforeunload', (e) => { if (tplDirty && tplCur) { e.preventDefault(); e.returnValue = ''; } });
+window.addEventListener('beforeunload', (e) => { if (smpDirty && smpCur) { e.preventDefault(); e.returnValue = ''; } });
 
 /* ================= SETTINGS ================= */
 let settings = null;
-let starterTemplates = [];
-// Doc starters are worded as a request ("Write a … for our camp"); Ranger interviews the member, then writes it.
-const starterTplSelect = () => '';
 function starterRow(s = {}) {
   return `<div class="starter"><div class="row" style="flex-wrap:nowrap">
     <label class="sr-only">Label</label><input class="input" data-k="kicker" value="${esc(s.kicker || '')}" placeholder="Label" style="width:130px">
     <label class="sr-only">Question</label><input class="input" data-k="text" value="${esc(s.text || '')}" placeholder="Question members can click">
     <label class="row hint" style="gap:4px;white-space:nowrap" title="Shown as a “Write a document” starter: Ranger asks about the camp, then writes this document"><input type="checkbox" data-k="doc" ${s.doc ? 'checked' : ''}> Doc</label>
     <button class="icon-btn" type="button" data-remove aria-label="Remove starter">✕</button>
-  </div>${starterTplSelect(s)}</div>`;
+  </div></div>`;
 }
 let privacyDefault = '';
 $('#set-privacy-default').addEventListener('click', async () => { if (await ask('Replace the notice with the default text? (Click Save settings to keep it.)')) $('#set-privacy').value = privacyDefault; });
@@ -1384,7 +1275,6 @@ loaders.settings = async () => {
   $('#set-model-other').hidden = true; $('#set-model-other').value = '';
   const backups = { '': 'None (show an error instead)', ...r.models }; const fb = settings.fallbackModelId || ''; if (!(fb in backups)) backups[fb] = fb;
   $('#set-fallback').innerHTML = Object.entries(backups).map(([id, label]) => `<option value="${esc(id)}" ${id === fb ? 'selected' : ''}>${esc(label)}</option>`).join('');
-  starterTemplates = await api('GET', '/admin/templates').then((t) => t.templates).catch(() => []);
   $('#set-starters').innerHTML = settings.starters.map(starterRow).join('');
 };
 $('#set-model').addEventListener('change', () => { const other = $('#set-model').value === '__other'; $('#set-model-other').hidden = !other; if (other) $('#set-model-other').focus(); });
@@ -1415,10 +1305,9 @@ $$('.rcp-list').forEach((box) => box.addEventListener('click', async (e) => {
 
 $('#set-add-starter').addEventListener('click', () => { if ($$('.starter').length >= 6) return toast('Up to 6 starters.'); $('#set-starters').insertAdjacentHTML('beforeend', starterRow()); });
 $('#set-starters').addEventListener('click', (e) => { if (e.target.closest('[data-remove]')) e.target.closest('.starter').remove(); });
-$('#set-starters').addEventListener('change', (e) => { if (e.target.matches('[data-k=doc]')) { const x = $('.starter-tpl', e.target.closest('.starter')); if (x) x.hidden = !e.target.checked; } });
 $('#set-save').addEventListener('click', async () => {
   try {
-    const starters = $$('#set-starters .starter').map((r) => ({ kicker: $('[data-k=kicker]', r).value, text: $('[data-k=text]', r).value, doc: $('[data-k=doc]', r).checked, templateId: $('[data-k=templateId]', r)?.value || '' }));
+    const starters = $$('#set-starters .starter').map((r) => ({ kicker: $('[data-k=kicker]', r).value, text: $('[data-k=text]', r).value, doc: $('[data-k=doc]', r).checked }));
     await api('PUT', '/admin/settings', {
       welcomeText: $('#set-welcome').value, disclaimer: $('#set-disclaimer').value, contactPhone: $('#set-phone').value, privacyNotice: $('#set-privacy').value,
       starters, dailyLimitPerIp: Number($('#set-ip').value), dailyLimitGlobal: Number($('#set-global').value), modelId: $('#set-model').value === '__other' ? $('#set-model-other').value.trim() : $('#set-model').value, retentionDays: Number($('#set-retention-days').value), fallbackModelId: $('#set-fallback').value,

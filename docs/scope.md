@@ -33,13 +33,13 @@ The new build:
 - **Model:** same as Pip, OpenAI GPT-5.6 Terra on Bedrock, with Luna as the backup. It's a setting in the admin panel.
 - **Program type instead of form of government.** It drives starting sections, deadlines and document versions. The API field keeps the name `form`.
 - **Library scope:** Title 63 §§ 681 and 683.x, Title 51 §§ 151–200 (municipal tort liability, which matters to a risk pool), and Title 82 §§ 1601–1619 (floodplain management, for hazard exposure zones). No federal parts yet; add 44 C.F.R. Part 60 (NFIP) on the Statute library page if members ask about flood maps.
-- **Documents are drafts.** Every Word file's footer says it's a draft prepared with Ranger, to review with the municipal attorney or OMAG before use. The starter templates in `knowledge/templates/` carry "Draft pending municipal and applicable external review", a missing-information section and a statutory crosswalk whose status column the municipality fills in. Nothing is marked complete or compliant by Ranger.
+- **Documents are drafts.** Every Word file's footer says it's a draft prepared with Ranger, to review with the municipal attorney or OMAG before use. Open choices stay in [brackets] for the member to fill in. Nothing is marked complete or compliant by Ranger.
 
 ## Open decisions
 
 - [ ] Final subdomain (suggested `campsafety.omag.org`)
 - [ ] Whether to keep the name "Ranger"
 - [ ] OMAG Legal review of the privacy notice, disclaimer and a few documents Ranger writes
-- [ ] OMAG camp safety samples for `get_sample` (switched off until then)
+- [ ] OMAG camp safety sample documents (admin panel → **Sample documents**) for `get_sample` to read as guides
 - [ ] Retention period for conversations (default 2 years, as Pip)
 - [ ] Add implementing rules once the regulating authority adopts them

@@ -166,7 +166,7 @@ test('retention: set in Settings, shown to members, used for new records', async
   assert.equal((await call('GET', '/config')).json.retentionDays, 365);
 });
 
-test('document starters open a chosen template, or ask which document', async () => {
+test('document starters ask which document to write; old template ids are dropped', async () => {
   const r = await call('PUT', '/admin/settings', { body: { starters: [
     { kicker: 'Create a document', text: 'Build a document', doc: true, templateId: '' },
     { kicker: 'Policy', text: 'Build our personnel policies', doc: true, templateId: 'personnel-policy' },
@@ -176,7 +176,7 @@ test('document starters open a chosen template, or ask which document', async ()
   const starters = (await call('GET', '/config')).json.starters;
   assert.deepEqual(starters, [
     { kicker: 'Create a document', text: 'Build a document', doc: true },
-    { kicker: 'Policy', text: 'Build our personnel policies', doc: true, templateId: 'personnel-policy' },
+    { kicker: 'Policy', text: 'Build our personnel policies', doc: true },
     { kicker: 'Ask', text: 'A question' }
   ]);
 });

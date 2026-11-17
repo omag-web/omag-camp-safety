@@ -29,6 +29,7 @@ import { refreshPrices } from './pricing.mjs';
 import { checkRateLimit, checkDocLimit, checkAttachLimit, logTurn, logDocument, newTurnId, saveFeedback, saveContact } from './store.mjs';
 import { readAttachment, cleanAttachments } from './attachments.mjs';
 import { validateDraft, draftToDocx, draftFilename } from './drafts.mjs';
+import { samplesFor, readSample } from './samples.mjs';
 import { redact } from './privacy.mjs';
 
 const ID = /^[A-Za-z0-9_-]{6,64}$/;
@@ -145,14 +146,15 @@ async function chat(stream, body, ip, opts = {}) {
   let error = null;
   // Writing a long document can go minutes without new text; a small ping keeps the connection open.
   const ping = setInterval(() => emit({ type: 'ping' }), 15_000);
+  const sampleForm = FORM_KEYS.includes(form) ? form : 'unsure';
   try {
     emit({ type: 'status', text: 'Reading your question' });
     result = await runAgent({
       history: messages, form, city: city ? String(city).slice(0, 120) : undefined,
-      library: await getLibrary(), emit, guidance, modelId, fallbackModelId: cfg.settings.fallbackModelId
-      // OMAG samples later: pass `templates: await memberTemplates(form)` and
-      // `loadSample: (id) => sampleText(id, form, { getTemplate, pickVariant, getBlob, extractText })`
-      // (both from templates.mjs / drafts.mjs, as in Pip's handler) to offer get_sample.
+      library: await getLibrary(), emit, guidance, modelId, fallbackModelId: cfg.settings.fallbackModelId,
+      // OMAG's sample documents for this program type; get_sample is offered only when there are some.
+      samples: await samplesFor(sampleForm).catch((e) => { console.error('samples unavailable', e); return []; }),
+      loadSample: (id) => readSample(id, sampleForm)
     });
     emit({ type: 'done', turnId, citations: result.citations, unread: result.unread, ...(result.draft ? { draft: result.draft } : {}) });
   } catch (e) {
@@ -204,7 +206,7 @@ async function draftDoc(stream, body, ip) {
   const municipality = String(body.municipality || '').slice(0, 120);
   const data = await draftToDocx(draft);
   try {
-    await logDocument({ templateId: 'custom', title: draft.title, form: FORM_KEYS.includes(body.form) ? body.form : undefined, city: municipality, browserId: body.browserId, ip, blanks: (draftText(draft).match(/\[[^\]\n]{2,80}\]/g) || []).length, conversationId: ID.test(String(body.conversationId || '')) ? body.conversationId : undefined });
+    await logDocument({ kind: 'written', title: draft.title, form: FORM_KEYS.includes(body.form) ? body.form : undefined, city: municipality, browserId: body.browserId, ip, blanks: (draftText(draft).match(/\[[^\]\n]{2,80}\]/g) || []).length, conversationId: ID.test(String(body.conversationId || '')) ? body.conversationId : undefined });
   } catch (e) { console.error('doc log failed', e); }
   return json(stream, 200, { filename: draftFilename(draft, municipality), data: data.toString('base64') });
 }

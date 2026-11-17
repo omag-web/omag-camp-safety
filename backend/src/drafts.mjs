@@ -3,11 +3,9 @@
 // the member page previews and that the server turns into a Word file on request
 // (POST /documents/docx).
 //
-// OMAG samples (later): when OMAG has camp safety samples in the admin panel, the
-// get_sample tool can read one as a guide to what a document should cover, never as a
-// form to fill in. Everything for that is here (GET_SAMPLE_SPEC, sampleText) and in
-// tools.mjs and agent.mjs; to turn it on, pass `templates` and `loadSample` to runAgent
-// in handler.mjs (see the note there).
+// OMAG's sample documents (admin panel → Sample documents, samples.mjs) are offered to
+// the model through get_sample, as a guide to what a document should cover, never as a
+// form to fill in. The tool only appears when at least one sample is switched on.
 
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, Footer, PageNumber, AlignmentType, LevelFormat, BorderStyle } from 'docx';
 
@@ -49,12 +47,12 @@ export const WRITE_DOCUMENT_SPEC = {
   }
 };
 
-/** Not offered yet: see the note at the top of this file. */
+/** Offered when OMAG has sample documents switched on (see samples.mjs). */
 export const GET_SAMPLE_SPEC = {
   toolSpec: {
     name: 'get_sample',
     description: 'Read the text of one of OMAG’s sample documents, as a guide to what such a document usually covers. Use it as a reference, not a form to fill in.',
-    inputSchema: { json: { type: 'object', properties: { template_id: { type: 'string' } }, required: ['template_id'] } }
+    inputSchema: { json: { type: 'object', properties: { sample_id: { type: 'string', description: 'A sample id from the list in your instructions.' } }, required: ['sample_id'] } }
   }
 };
 
@@ -190,23 +188,4 @@ export async function draftToDocx(d, { today = new Date() } = {}) {
     }]
   });
   return Packer.toBuffer(doc);
-}
-
-/* ---------- OMAG samples as reference (not switched on yet) ---------- */
-
-/** Plain text of a sample template for this program type, with {{tags}} shown as [labels]. */
-export async function sampleText(templateId, form, { getTemplate, pickVariant, getBlob, extractText }) {
-  const t = await getTemplate(templateId);
-  if (!t.enabled) throw new Error('That sample isn’t available.');
-  const pick = pickVariant(t, form);
-  if (!pick) throw new Error('That sample isn’t available for this program type.');
-  const buf = await getBlob(t.variants[pick.variant].key);
-  if (!buf) throw new Error('The sample file is missing.');
-  const labels = new Map((t.fields || []).map((f) => [f.key, f.label]));
-  let text = (await extractText(buf))
-    .replace(/\{\{[#^/]?\s*([\w.]+)\s*\}\}/g, (m, k) => (/^\{\{[#^/]/.test(m) ? '' : `[${labels.get(k) || k.replace(/_/g, ' ')}]`))
-    .replace(/\n{3,}/g, '\n\n').trim();
-  const cut = text.length > SAMPLE_CHARS;
-  if (cut) text = text.slice(0, SAMPLE_CHARS);
-  return { title: t.title, text, truncated: cut };
 }

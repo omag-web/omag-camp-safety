@@ -7,8 +7,7 @@ import { getLibrary, libraryStatus, refreshLibrary, librarySources, checkSources
 import { listTurns, getConversation, listContacts, usageStats } from './store.mjs';
 import { analytics } from './analytics.mjs';
 import { refreshPrices } from './pricing.mjs';
-import { listTemplates, getTemplate, createTemplate, updateTemplate, deleteTemplate, variantUploadUrl, attachVariant, removeVariant, fillTemplate, exportPack, importPack, importUploadUrl, VARIANT_LABEL, FIELD_TYPES, PREFILLS } from './templates.mjs';
-import { blobs } from './storage.mjs';
+import { listSamples, getSample, createSample, updateSample, deleteSample, fileUploadUrl, attachFile, removeFile, VERSION_LABEL } from './samples.mjs';
 import { listAdmins, inviteAdmin, resendAccess, setAdminEnabled, removeAdmin, resetMfa } from './admins.mjs';
 import { saveSourcesConfig } from './sources.mjs';
 import { getJob, startJob } from './jobs.mjs';
@@ -48,29 +47,16 @@ on('POST', '/admin/admins/:id/enable', async ({ params, admin }) => { const r = 
 on('POST', '/admin/admins/:id/reset-mfa', async ({ params, admin }) => { const r = await resetMfa(params.id, admin); console.log('admin MFA reset', params.id, 'by', admin.email); return withYou(admin, r); });
 on('DELETE', '/admin/admins/:id', async ({ params, admin }) => { const r = await removeAdmin(params.id, admin); console.log('admin removed', params.id, 'by', admin.email); return withYou(admin, r); });
 
-/* document templates */
-const tplMeta = { variants: VARIANT_LABEL, fieldTypes: FIELD_TYPES, prefills: PREFILLS };
-on('GET', '/admin/templates', async () => ({ templates: await listTemplates(), ...tplMeta }));
-on('POST', '/admin/templates', async ({ body, admin }) => ({ template: await createTemplate(body || {}, admin.email) }));
-on('GET', '/admin/templates/:id', async ({ params }) => ({ template: await getTemplate(params.id), ...tplMeta }));
-on('PUT', '/admin/templates/:id', async ({ params, body, admin }) => ({ template: await updateTemplate(params.id, body || {}, admin.email) }));
-on('DELETE', '/admin/templates/:id', async ({ params }) => { await deleteTemplate(params.id); return { templates: await listTemplates() }; });
-on('POST', '/admin/templates/:id/upload', async ({ params, body }) => variantUploadUrl(params.id, body || {}));
-on('POST', '/admin/templates/:id/attach', async ({ params, body, admin }) => attachVariant(params.id, body || {}, admin.email));
-on('POST', '/admin/templates/:id/remove-file', async ({ params, body }) => ({ template: await removeVariant(params.id, String(body?.variant || '')) }));
-on('POST', '/admin/templates/:id/test', async ({ params, body }) => {
-  const d = await fillTemplate(params.id, { form: body?.form, values: body?.values || {}, municipality: body?.values?.municipality_name }, { allowDisabled: true });
-  return { filename: d.filename, data: d.data.toString('base64'), blanks: d.blanks, variant: d.variant };
-});
-on('GET', '/admin/templates-export', async () => ({ filename: `ranger-templates-${new Date().toISOString().slice(0, 10)}.zip`, data: (await exportPack()).toString('base64') }));
-on('POST', '/admin/templates-import/upload', async () => importUploadUrl());
-on('POST', '/admin/templates-import', async ({ body, admin }) => {
-  const key = String(body?.key || '');
-  if (!/^imports\/[\w-]+\.zip$/.test(key)) throw Object.assign(new Error('Upload not found.'), { status: 404 });
-  const buf = await blobs.get(key);
-  if (!buf) throw Object.assign(new Error('The upload didn’t arrive. Try again.'), { status: 404 });
-  try { return { imported: await importPack(buf, admin.email), templates: await listTemplates() }; } finally { await blobs.del(key); }
-});
+/* sample documents (read by Ranger as a guide; see samples.mjs) */
+const sampleMeta = { versions: VERSION_LABEL };
+on('GET', '/admin/samples', async () => ({ samples: await listSamples(), ...sampleMeta }));
+on('POST', '/admin/samples', async ({ body, admin }) => ({ sample: await createSample(body || {}, admin.email) }));
+on('GET', '/admin/samples/:id', async ({ params }) => ({ sample: await getSample(params.id), ...sampleMeta }));
+on('PUT', '/admin/samples/:id', async ({ params, body, admin }) => ({ sample: await updateSample(params.id, body || {}, admin.email) }));
+on('DELETE', '/admin/samples/:id', async ({ params }) => { await deleteSample(params.id); return { samples: await listSamples() }; });
+on('POST', '/admin/samples/:id/upload', async ({ params, body }) => fileUploadUrl(params.id, body || {}));
+on('POST', '/admin/samples/:id/attach', async ({ params, body, admin }) => attachFile(params.id, body || {}, admin.email));
+on('POST', '/admin/samples/:id/remove-file', async ({ params, body }) => ({ sample: await removeFile(params.id, String(body?.version || '')) }));
 
 /* guidance */
 on('GET', '/admin/guidance', async () => getGuidanceState());
