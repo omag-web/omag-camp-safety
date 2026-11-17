@@ -8,8 +8,7 @@
 //   POST /chat                   → streams NDJSON events: status | text | reset | done | error
 //   POST /feedback               → thumbs up/down on an answer
 //   POST /contact                → "Talk to OMAG" message
-//   GET  /templates?form=camp    → document templates available for that program type
-//   POST /templates/fill         → builds a document: { templateId, form, values } → { filename, data (base64 .docx), blanks }
+//   POST /documents/docx         → Word file for a document Ranger wrote: { draft, municipality } → { filename, data (base64 .docx) }
 // Admin (signed in; see admin.mjs)
 //   /admin/*                     → instructions, documents, settings, conversations, library
 //   POST /admin/preview          → like /chat, but with the draft instructions
@@ -29,7 +28,7 @@ import { refreshWebsites } from './docs.mjs';
 import { refreshPrices } from './pricing.mjs';
 import { checkRateLimit, checkDocLimit, checkAttachLimit, logTurn, logDocument, newTurnId, saveFeedback, saveContact } from './store.mjs';
 import { readAttachment, cleanAttachments } from './attachments.mjs';
-import { memberTemplates, fillTemplate } from './templates.mjs';
+import { validateDraft, draftToDocx, draftFilename } from './drafts.mjs';
 import { redact } from './privacy.mjs';
 
 const ID = /^[A-Za-z0-9_-]{6,64}$/;
@@ -59,8 +58,7 @@ export const handler = awslambda.streamifyResponse(async (event, stream) => {
     if (method === 'POST' && path === '/attach') return await attach(stream, parse(event, 5_800_000), ip);
     if (method === 'POST' && path === '/feedback') return await feedback(stream, parse(event));
     if (method === 'POST' && path === '/contact') return await contact(stream, parse(event), ip);
-    if (method === 'GET' && path === '/templates') return json(stream, 200, { templates: await memberTemplates(String(event.queryStringParameters?.form || 'unsure')) }, { 'Cache-Control': 'public, max-age=60' });
-    if (method === 'POST' && path === '/templates/fill') return await fillDoc(stream, parse(event), ip);
+    if (method === 'POST' && path === '/documents/docx') return await draftDoc(stream, parse(event, 400_000), ip);
     if (path.startsWith('/admin/')) {
       const admin = await requireAdmin(event);
       if (method === 'POST' && path === '/admin/preview') return await chat(stream, parse(event), ip, { admin });
@@ -117,7 +115,7 @@ async function chat(stream, body, ip, opts = {}) {
   const messages = Array.isArray(body.messages) ? cleanAttachments(body.messages.map((m) => {
     const r = redact(m?.text);
     removed.push(...r.removed);
-    return { role: m?.role, text: r.text, attachments: m?.attachments };
+    return { role: m?.role, text: r.text, attachments: m?.attachments, draft: m?.role === 'user' ? m?.draft : undefined };
   })) : body.messages;
   if (removed.length) console.log('removed personal details from a chat request:', [...new Set(removed)].join(', '));
   if (!ID.test(String(conversationId || ''))) return json(stream, 400, { error: 'conversationId required' });
@@ -145,19 +143,23 @@ async function chat(stream, body, ip, opts = {}) {
   const modelId = cfg.settings.modelId;
   let result = null;
   let error = null;
+  // Writing a long document can go minutes without new text; a small ping keeps the connection open.
+  const ping = setInterval(() => emit({ type: 'ping' }), 15_000);
   try {
     emit({ type: 'status', text: 'Reading your question' });
     result = await runAgent({
       history: messages, form, city: city ? String(city).slice(0, 120) : undefined,
-      library: await getLibrary(), emit, guidance, modelId, fallbackModelId: cfg.settings.fallbackModelId,
-      templates: await memberTemplates(FORM_KEYS.includes(form) ? form : 'unsure').catch((e) => { console.error('templates unavailable', e); return []; })
+      library: await getLibrary(), emit, guidance, modelId, fallbackModelId: cfg.settings.fallbackModelId
+      // OMAG samples later: pass `templates: await memberTemplates(form)` and
+      // `loadSample: (id) => sampleText(id, form, { getTemplate, pickVariant, getBlob, extractText })`
+      // (both from templates.mjs / drafts.mjs, as in Pip's handler) to offer get_sample.
     });
-    emit({ type: 'done', turnId, citations: result.citations, unread: result.unread, documents: result.documents });
+    emit({ type: 'done', turnId, citations: result.citations, unread: result.unread, ...(result.draft ? { draft: result.draft } : {}) });
   } catch (e) {
     console.error('chat failed', e);
     error = e.name || 'Error';
     emit({ type: 'error', message: friendlyError(e) });
-  }
+  } finally { clearInterval(ping); }
   try {
     await logTurn({
       conversationId, turnId, browserId, ip, city, form, question,
@@ -193,19 +195,20 @@ async function feedback(stream, body) {
   return json(stream, ok ? 200 : 404, { ok });
 }
 
-async function fillDoc(stream, body, ip) {
-  const { templateId, form, values, municipality, city, browserId, conversationId } = body;
-  if (!/^[a-z0-9-]{3,64}$/.test(String(templateId || ''))) return json(stream, 400, { error: 'Choose a document.' });
-  if (values && (typeof values !== 'object' || JSON.stringify(values).length > 60000)) return json(stream, 400, { error: 'Too much text in the answers.' });
+/** Word file for a document Ranger wrote in chat. The draft comes back from the browser, so it's checked again. */
+async function draftDoc(stream, body, ip) {
+  let draft;
+  try { draft = validateDraft(body.draft); } catch (e) { return json(stream, 400, { error: e.message }); }
   const limit = await checkDocLimit(ip);
   if (!limit.ok) return json(stream, 429, { error: limit.reason });
-  const doc = await fillTemplate(templateId, { form, values: values || {}, municipality });
-  const t = await import('./templates.mjs').then((m) => m.getTemplate(templateId));
+  const municipality = String(body.municipality || '').slice(0, 120);
+  const data = await draftToDocx(draft);
   try {
-    await logDocument({ templateId, title: t.title, form, city: city || municipality, browserId, ip, blanks: doc.blanks.length, conversationId: ID.test(String(conversationId || '')) ? conversationId : undefined });
+    await logDocument({ templateId: 'custom', title: draft.title, form: FORM_KEYS.includes(body.form) ? body.form : undefined, city: municipality, browserId: body.browserId, ip, blanks: (draftText(draft).match(/\[[^\]\n]{2,80}\]/g) || []).length, conversationId: ID.test(String(body.conversationId || '')) ? body.conversationId : undefined });
   } catch (e) { console.error('doc log failed', e); }
-  return json(stream, 200, { filename: doc.filename, data: doc.data.toString('base64'), blanks: doc.blanks });
+  return json(stream, 200, { filename: draftFilename(draft, municipality), data: data.toString('base64') });
 }
+const draftText = (d) => d.blocks.map((b) => b.text || b.items.join('\n')).join('\n');
 
 async function contact(stream, body, ip) {
   const { conversationId, form } = body;

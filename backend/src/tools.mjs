@@ -1,4 +1,6 @@
-// The two tools Ranger uses to research: search the library, then read sections.
+// Ranger's tools: search the library and read sections, plus writing documents (see drafts.mjs).
+
+import { validateDraft, resolveCitations } from './drafts.mjs';
 
 export const TOOL_SPECS = [
   {
@@ -32,41 +34,38 @@ export const TOOL_SPECS = [
   }
 ];
 
-/** Offered only when OMAG has document templates turned on. */
-export const OFFER_DOCUMENT_SPEC = {
-  toolSpec: {
-    name: 'offer_document',
-    description: 'Show the member a button to build one of OMAG’s document templates (a filled-in Word file). Use it when the member asks for a plan or document that matches a template, or when an interview has gathered enough to fill one. Do not write the document text yourself when a template exists. You may pass answers the member already told you.',
-    inputSchema: {
-      json: {
-        type: 'object',
-        properties: {
-          template_id: { type: 'string', description: 'The template id from the list in your instructions.' },
-          prefill: { type: 'object', description: 'Optional answers the member already gave, keyed by field name (e.g. {"municipality_name": "City of Ada", "site_name": "Wintersmith Park day camp"}). Only include facts the member stated; write "Not yet determined" for gaps in long answers.', additionalProperties: { type: ['string', 'number', 'boolean'] } }
-        },
-        required: ['template_id']
-      }
-    }
-  }
-};
-
 const MAX_SECTION_CHARS = 9000;
 
-/** Runs a tool call. Returns { result, status, ids } where ids are sections the model has now seen. */
+/**
+ * Runs a tool call. Returns { result, status, ids } where ids are sections the model has now seen
+ * (a Promise for get_sample, which reads a file).
+ * ctx: { templates, seen, drafts, loadSample }
+ */
 export function runTool(name, input, library, ctx = {}) {
-  if (name === 'offer_document') {
-    const t = (ctx.templates || []).find((x) => x.id === String(input?.template_id || ''));
-    if (!t) return { status: 'Finding a document template', ids: [], result: { error: 'No template with that id. Use an id from the list.' } };
-    const keys = new Set(t.fields.map((f) => f.key));
-    const prefill = {};
-    for (const [k, v] of Object.entries(input?.prefill && typeof input.prefill === 'object' ? input.prefill : {})) {
-      if (keys.has(k) && ['string', 'number', 'boolean'].includes(typeof v)) prefill[k] = typeof v === 'string' ? v.slice(0, 4000) : v;
+  if (name === 'write_document') {
+    let draft;
+    try { draft = validateDraft(input); } catch (e) {
+      return { status: 'Writing your document', ids: [], result: { error: `${e.message} Send the complete document again.` } };
     }
-    ctx.offers?.push({ templateId: t.id, title: t.title, prefill });
+    const r = resolveCitations(draft, library, ctx.seen || new Set());
+    ctx.drafts?.push(r.draft);
     return {
-      status: `Getting the ${t.title} ready`, ids: [],
-      result: { shown: true, title: t.title, message: 'A “Build this document” button is now shown below your answer. Briefly tell the member what the document is, that their answers so far are filled in for them to check, and that they can download the Word file. List the main items still missing. Don’t repeat the questions.' }
+      status: `Finishing ${r.draft.title}`, ids: [],
+      result: {
+        shown: true, title: r.draft.title,
+        ...(r.dropped.length ? { removed_citations: r.dropped, note: 'These citations were removed because you had not read those sections with get_sections. That is fine if the document reads well without them.' } : {}),
+        message: 'The member now sees the document below your answer, with Preview and Download Word buttons. In a few sentences, say what you tailored to their camp, list every [bracketed] item they still need to fill in or decide, and remind them to review it with their municipal attorney, county emergency management or OMAG before they use it. Don’t repeat the document text. Offer to make changes.'
+      }
     };
+  }
+  // Not offered yet (see drafts.mjs): reads an OMAG sample as a guide.
+  if (name === 'get_sample') {
+    const t = (ctx.templates || []).find((x) => x.id === String(input?.template_id || ''));
+    if (!t || !ctx.loadSample) return { status: 'Looking for an OMAG sample', ids: [], result: { error: 'No sample with that id. Use an id from the list, or write the document without one.' } };
+    return ctx.loadSample(t.id).then(
+      (s) => ({ status: `Reading OMAG’s sample ${s.title}`, ids: [], result: { title: s.title, text: s.text, ...(s.truncated ? { truncated: true } : {}), how_to_use: 'This is a guide to what the document should cover. Write the member’s document fresh, in your own words, for their camp; don’t copy it with blanks filled in.' } }),
+      (e) => ({ status: 'Looking for an OMAG sample', ids: [], result: { error: e.message || 'The sample couldn’t be read. Write the document without it.' } })
+    );
   }
   if (name === 'search_law') {
     const q = String(input?.query || '').slice(0, 300);

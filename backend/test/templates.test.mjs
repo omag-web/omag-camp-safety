@@ -7,7 +7,7 @@ import { installShim, makeResponseStream } from '../scripts/lambda-shim.mjs';
 installShim();
 const { handler } = await import('../src/handler.mjs');
 const { blobs } = await import('../src/storage.mjs');
-const { numberWords } = await import('../src/templates.mjs');
+const { numberWords, memberTemplates } = await import('../src/templates.mjs');
 
 const fixture = (name) => readFileSync(new URL(`./fixtures/${name}`, import.meta.url));
 const docText = (b64) => {
@@ -15,7 +15,7 @@ const docText = (b64) => {
   return zip.file('word/document.xml').asText().replace(/<w:p[ >][^]*?<\/w:p>/g, (p) => p.replace(/<[^>]+>/g, '') + '\n').replace(/<[^>]+>/g, '');
 };
 
-async function call(method, path, { body } = {}) {
+async function rawCall(method, path, { body } = {}) {
   const stream = makeResponseStream();
   const [rawPath, qs] = path.split('?');
   await handler({ rawPath, queryStringParameters: qs ? Object.fromEntries(new URLSearchParams(qs)) : undefined, headers: {}, body: body ? JSON.stringify(body) : undefined, requestContext: { http: { method, sourceIp: '203.0.113.7' } } }, stream);
@@ -23,6 +23,23 @@ async function call(method, path, { body } = {}) {
   const r = stream.result();
   let json; try { json = JSON.parse(r.body); } catch {}
   return { ...r, json };
+}
+// Members no longer fill in templates: Ranger writes documents itself (drafts.mjs). The template
+// machinery stays for OMAG samples later (get_sample), so these tests still check it: the old
+// member routes go to memberTemplates() and the admin panel's "Test with sample answers" route.
+async function call(method, path, opts = {}) {
+  if (method === 'GET' && path.startsWith('/templates?')) {
+    const form = new URLSearchParams(path.split('?')[1]).get('form');
+    return { statusCode: 200, json: { templates: await memberTemplates(form) } };
+  }
+  if (method === 'POST' && path === '/templates/fill') {
+    const b = opts.body || {};
+    if (!/^[a-z0-9-]{3,64}$/.test(String(b.templateId || ''))) return { statusCode: 400, json: {} };
+    const enabled = (await memberTemplates(b.form || 'unsure')).some((t) => t.id === b.templateId);
+    if (!enabled) return { statusCode: 404, json: { error: 'not offered' } };
+    return rawCall('POST', `/admin/templates/${b.templateId}/test`, { body: { form: b.form, values: b.values } });
+  }
+  return rawCall(method, path, opts);
 }
 async function upload(id, variant, file) {
   const buf = fixture(file);
@@ -141,33 +158,55 @@ test('template packs export and import', async () => {
   assert.ok(back && back.fields.find((f) => f.key === 'alert_method').options.length === 2, 'questions survive the round trip');
 });
 
-test('Ranger offers a document in chat, with answers the member gave', async () => {
-  process.env.MODEL_MODE = 'mock';
+const chatEvents = async (body) => {
   const s = makeResponseStream();
-  // Use the template id the mock picks for "emergency action plan".
-  const c = await call('POST', '/admin/templates', { body: { title: 'Emergency Action Plan' } });
-  const eapId = c.json.template.id;
-  const { kv } = await import('../src/storage.mjs');
-  const t = await kv.get('TEMPLATE', eapId);
-  await kv.del('TEMPLATE', eapId);
-  await kv.put({ ...t, sk: 'emergency-action-plan', id: 'emergency-action-plan' });
-  await upload('emergency-action-plan', 'all', 'template-all.docx');
-  await call('PUT', '/admin/templates/emergency-action-plan', { body: { enabled: true } });
-
-  await handler({ rawPath: '/chat', headers: {}, body: JSON.stringify({ conversationId: 'conv_doc_1', form: 'camp', messages: [{ role: 'user', text: 'Can you build our emergency action plan for the City of Ada?' }] }), requestContext: { http: { method: 'POST', sourceIp: '203.0.113.8' } } }, s);
+  await handler({ rawPath: '/chat', headers: {}, body: JSON.stringify(body), requestContext: { http: { method: 'POST', sourceIp: '203.0.113.8' } } }, s);
   await s.done;
-  const events = s.result().body.trim().split('\n').map((l) => JSON.parse(l));
+  return s.result().body.trim().split('\n').map((l) => JSON.parse(l));
+};
+
+test('Ranger writes a custom document in chat, and can revise it', async () => {
+  process.env.MODEL_MODE = 'mock';
+  const events = await chatEvents({ conversationId: 'conv_doc_1', form: 'camp', city: 'City of Ada', messages: [{ role: 'user', text: 'Can you write a lightning plan for Camp Wintersmith in the City of Ada?' }] });
+  assert.ok(events.some((e) => e.type === 'status' && /Writing your document. Longer documents take a few minutes/.test(e.text)), 'tells the member it is writing');
   const done = events.find((e) => e.type === 'done');
-  assert.ok(done, JSON.stringify(events));
-  assert.equal(done.documents.length, 1);
-  assert.equal(done.documents[0].templateId, 'emergency-action-plan');
-  assert.deepEqual(done.documents[0].prefill, { municipality_name: 'City of Ada' });
+  assert.ok(done?.draft, JSON.stringify(events));
+  assert.equal(done.draft.title, 'Severe Weather and Lightning Plan');
+  assert.equal(done.draft.subtitle, 'Camp Wintersmith, City of Ada, Oklahoma');
+  assert.ok(!done.documents, 'no fill-in template offer');
+
+  // The member asks for a change; the draft they see goes back to Ranger with the question.
+  const again = await chatEvents({ conversationId: 'conv_doc_1', form: 'camp', messages: [
+    { role: 'user', text: 'Can you write a lightning plan for Camp Wintersmith in the City of Ada?' },
+    { role: 'assistant', text: 'Here it is.' },
+    { role: 'user', text: 'Please update it to add the pool.', draft: done.draft }
+  ] });
+  const d2 = again.find((e) => e.type === 'done');
+  assert.match(d2.draft.blocks[1].text, /Revised/);
+
+  // Download as Word: a real .docx with the text and the draft footer.
+  const r = await call('POST', '/documents/docx', { body: { draft: d2.draft, municipality: 'City of Ada', form: 'camp', browserId: 'b_123456' } });
+  assert.equal(r.statusCode, 200, JSON.stringify(r.json));
+  assert.equal(r.json.filename, 'Severe Weather and Lightning Plan - City of Ada.docx');
+  const zip = new PizZip(Buffer.from(r.json.data, 'base64'));
+  const xml = zip.file('word/document.xml').asText();
+  assert.match(xml, /Purpose/);
+  assert.match(xml, /Revised/);
+  assert.match(xml, /w:w="12240"/, 'US Letter paper');
+  assert.match(xml, /w:top="1440"/, '1-inch margins');
+  const footer = Object.keys(zip.files).filter((f) => /footer/.test(f)).map((f) => zip.file(f).asText()).join('');
+  assert.match(footer, /DRAFT prepared with Ranger, OMAG’s AI assistant/);
+  assert.match(footer, /Review with your municipal attorney or OMAG before use/);
+
+  const bad = await call('POST', '/documents/docx', { body: { draft: { title: '', blocks: [] } } });
+  assert.equal(bad.statusCode, 400);
+  assert.equal((await rawCall('POST', '/templates/fill', { body: { templateId: 'hazard-assessment' } })).statusCode, 404, 'the fill-in route is gone');
 });
 
-test('analytics count documents built', async () => {
+test('analytics count documents downloaded', async () => {
   const a = (await call('GET', '/admin/analytics', { body: undefined })).json;
-  assert.ok(a.totals.documents >= 2, JSON.stringify(a.totals));
-  assert.ok(a.documents.some((d) => d.name === 'Test Hazard Assessment'));
+  assert.ok(a.totals.documents >= 1, JSON.stringify(a.totals));
+  assert.ok(a.documents.some((d) => d.name === 'Severe Weather and Lightning Plan'), JSON.stringify(a.documents));
 });
 
 test('the starter template pack imports and every document fills cleanly', async () => {

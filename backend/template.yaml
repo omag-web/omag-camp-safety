@@ -212,8 +212,8 @@ Resources:
       Runtime: nodejs22.x
       Architectures: [arm64]
       MemorySize: 1024
-      # Answers stop researching after ~3 minutes (agent.mjs); this leaves room to finish writing.
-      Timeout: 300
+      # Answers stop researching after 4 minutes (agent.mjs); this leaves room to write a long document.
+      Timeout: 600
       ReservedConcurrentExecutions: 10
       Environment:
         Variables:
@@ -395,14 +395,14 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: HasContactEmail
     Properties:
-      AlarmDescription: A Ranger answer took more than 4 minutes (the limit is 5). Check CloudWatch logs and the model.
+      AlarmDescription: A Ranger answer took more than 8 minutes (the limit is 10). Check CloudWatch logs and the model.
       Namespace: AWS/Lambda
       MetricName: Duration
       Dimensions: [{ Name: FunctionName, Value: !Ref RangerFunction }]
       Statistic: Maximum
       Period: 300
       EvaluationPeriods: 1
-      Threshold: 240000
+      Threshold: 480000
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
       AlarmActions: [!Ref ContactTopic]
