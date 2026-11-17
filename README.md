@@ -1,0 +1,1 @@
+# omag-camp-safety
