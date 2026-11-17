@@ -76,7 +76,7 @@ jobs:
           sudo apt-get update -q && sudo apt-get install -y -q poppler-utils
           node knowledge/scripts/build-library.mjs
 
-      - uses: aws-actions/setup-sam@v2
+      - uses: aws-actions/setup-sam@v3
         with:
           use-installer: true
 
