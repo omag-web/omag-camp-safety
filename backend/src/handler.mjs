@@ -24,6 +24,7 @@ import { getConfig, publicSettings } from './config.mjs';
 import { kv } from './storage.mjs';
 import { requireAdmin, authConfig } from './auth.mjs';
 import { matchAdmin } from './admin.mjs';
+import { areaFor, getAreas, cleanAreas, AREAS } from './permissions.mjs';
 import { refreshWebsites } from './docs.mjs';
 import { refreshPrices } from './pricing.mjs';
 import { checkRateLimit, checkDocLimit, checkAttachLimit, logTurn, logDocument, newTurnId, saveFeedback, saveContact, rememberQuestion, takeAnswer } from './store.mjs';
@@ -65,6 +66,11 @@ export const handler = awslambda.streamifyResponse(async (event, stream) => {
     if (method === 'POST' && path === '/documents/docx') return await draftDoc(stream, parse(event, 400_000), ip);
     if (path.startsWith('/admin/')) {
       const admin = await requireAdmin(event);
+      // Access levels: each admin only reaches the areas they've been given (permissions.mjs).
+      // (Local mode: LOCAL_ADMIN_AREAS=reports,content tries the panel as a limited admin.)
+      admin.areas = admin.dev ? (process.env.LOCAL_ADMIN_AREAS ? cleanAreas(process.env.LOCAL_ADMIN_AREAS.split(',')) : Object.keys(AREAS)) : await getAreas(admin.username);
+      const area = areaFor(method, path);
+      if (area && !admin.areas.includes(area)) return json(stream, 403, { error: `You don’t have access to ${AREAS[area].label}. Ask an admin who manages access (the Admins page) if you need it.` });
       if (method === 'POST' && path === '/admin/preview') return await chat(stream, parse(event), ip, { admin });
       const route = matchAdmin(method, path);
       if (!route) return json(stream, 404, { error: 'Not found' });
