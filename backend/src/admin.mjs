@@ -10,6 +10,7 @@ import { refreshPrices } from './pricing.mjs';
 import { listSamples, getSample, createSample, updateSample, deleteSample, fileUploadUrl, attachFile, removeFile, VERSION_LABEL } from './samples.mjs';
 import { listAdmins, inviteAdmin, resendAccess, setAdminEnabled, removeAdmin, resetMfa } from './admins.mjs';
 import { saveSourcesConfig } from './sources.mjs';
+import { AREAS, DEFAULT_AREAS, areasFor, setAreas, forgetAreas, getAreas, cleanAreas } from './permissions.mjs';
 import { getJob, startJob } from './jobs.mjs';
 import { getQuestions, saveQuestions, listRuns, getRun, FORMS, PASS_SHARE } from './checks.mjs';
 import { listRecipients, addRecipient, removeRecipient, LISTS } from './notify.mjs';
@@ -17,7 +18,7 @@ import { listRecipients, addRecipient, removeRecipient, LISTS } from './notify.m
 const routes = [];
 const on = (method, pattern, fn) => routes.push({ method, re: new RegExp('^' + pattern.replace(/:(\w+)/g, '(?<$1>[A-Za-z0-9_\\-]+)') + '$'), fn });
 
-on('GET', '/admin/me', async ({ admin }) => ({ email: admin.email, dev: !!admin.dev, mfaRequired: process.env.ADMIN_MFA_REQUIRED === 'true' }));
+on('GET', '/admin/me', async ({ admin }) => ({ email: admin.email, dev: !!admin.dev, mfaRequired: process.env.ADMIN_MFA_REQUIRED === 'true', areas: admin.areas, allAreas: AREAS }));
 
 on('GET', '/admin/overview', async () => {
   const [stats, library, docs, cfg] = await Promise.all([usageStats({ days: 30 }), libraryStatus(), listDocs(), getConfig({ fresh: true })]);
@@ -38,14 +39,42 @@ on('GET', '/admin/analytics/export', async ({ query }) => ({
 }));
 
 /* admins */
-const withYou = async (admin, extra = {}) => ({ ...extra, you: admin.username, admins: (await listAdmins()).map((u) => ({ ...u, you: u.username === admin.username || u.email === admin.email })) });
+const withYou = async (admin, extra = {}) => {
+  const list = await listAdmins();
+  const areas = await areasFor(list.map((u) => u.username));
+  return { ...extra, you: admin.username, allAreas: AREAS, defaultAreas: DEFAULT_AREAS, admins: list.map((u) => ({ ...u, areas: areas[u.username], you: u.username === admin.username || u.email === admin.email })) };
+};
+/** Turning off or removing someone must leave at least one other admin who can manage access. */
+async function keepAnAccessAdmin(username, me) {
+  if (username === me.username) return;   // acting on yourself is refused with its own message
+  const list = await listAdmins();
+  if (!(await getAreas(username)).includes('admins')) return;
+  const others = await Promise.all(list.filter((u) => u.username !== username && u.enabled).map(async (u) => (await getAreas(u.username)).includes('admins')));
+  if (!others.some(Boolean)) throw Object.assign(new Error('They’re the only other admin who can manage access. Give someone else the Admins area first.'), { status: 400 });
+}
 on('GET', '/admin/admins', async ({ admin }) => withYou(admin));
-on('POST', '/admin/admins', async ({ body, admin }) => { const u = await inviteAdmin(body?.email); console.log('admin invited', u.email, 'by', admin.email); return withYou(admin, { message: `Invited ${u.email}. They'll get an email with a temporary password (good for 7 days).` }); });
+on('POST', '/admin/admins', async ({ body, admin }) => {
+  // Check the areas before sending the invite, so a bad choice doesn't leave a half-made admin.
+  const areas = cleanAreas(body?.areas ?? DEFAULT_AREAS);
+  if (!areas.length) throw Object.assign(new Error('Choose at least one area for them.'), { status: 400 });
+  const u = await inviteAdmin(body?.email);
+  await setAreas(u.username, areas, admin, await listAdmins());
+  console.log('admin invited', u.email, 'with', areas.join(','), 'by', admin.email);
+  return withYou(admin, { message: `Invited ${u.email}. They'll get an email with a temporary password (good for 7 days).` });
+});
+on('PUT', '/admin/admins/:id/access', async ({ params, body, admin }) => {
+  const list = await listAdmins();
+  const target = list.find((u) => u.username === params.id);
+  if (!target) throw Object.assign(new Error('That admin no longer exists.'), { status: 404 });
+  const areas = await setAreas(params.id, body?.areas, admin, list);
+  console.log('admin access changed', target.email, areas.join(','), 'by', admin.email);
+  return withYou(admin, { message: `Updated what ${target.email} can see. It takes effect within a minute.` });
+});
 on('POST', '/admin/admins/:id/resend', async ({ params, admin }) => withYou(admin, await resendAccess(params.id)));
-on('POST', '/admin/admins/:id/disable', async ({ params, admin }) => { const r = await setAdminEnabled(params.id, false, admin); console.log('admin disabled', params.id, 'by', admin.email); return withYou(admin, r); });
+on('POST', '/admin/admins/:id/disable', async ({ params, admin }) => { await keepAnAccessAdmin(params.id, admin); const r = await setAdminEnabled(params.id, false, admin); console.log('admin disabled', params.id, 'by', admin.email); return withYou(admin, r); });
 on('POST', '/admin/admins/:id/enable', async ({ params, admin }) => { const r = await setAdminEnabled(params.id, true, admin); console.log('admin enabled', params.id, 'by', admin.email); return withYou(admin, r); });
 on('POST', '/admin/admins/:id/reset-mfa', async ({ params, admin }) => { const r = await resetMfa(params.id, admin); console.log('admin MFA reset', params.id, 'by', admin.email); return withYou(admin, r); });
-on('DELETE', '/admin/admins/:id', async ({ params, admin }) => { const r = await removeAdmin(params.id, admin); console.log('admin removed', params.id, 'by', admin.email); return withYou(admin, r); });
+on('DELETE', '/admin/admins/:id', async ({ params, admin }) => { await keepAnAccessAdmin(params.id, admin); const r = await removeAdmin(params.id, admin); await forgetAreas(params.id); console.log('admin removed', params.id, 'by', admin.email); return withYou(admin, r); });
 
 /* sample documents (read by Ranger as a guide; see samples.mjs) */
 const sampleMeta = { versions: VERSION_LABEL };

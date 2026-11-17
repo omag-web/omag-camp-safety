@@ -175,6 +175,14 @@ pre.log{white-space:pre-wrap;word-break:break-word;background:#f8f5ee;border:1px
 .mfa-qr .mono{font-size:12px;word-break:break-all;text-align:center}
 
 dialog.ranger-dialog{border:none;border-radius:14px;padding:0;width:min(460px,calc(100vw - 32px));box-shadow:0 24px 60px rgba(20,40,30,.28);color:inherit}
+.area-opt{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font-size:14px;cursor:pointer;line-height:1.4}
+.area-opt input{margin-top:3px;flex:none}
+.area-opt .hint{font-size:12.5px}
+.adm-layout{display:grid;gap:16px}
+.adm-side{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;align-items:start}
+#adm-table td:last-child .row{flex-wrap:wrap}
+.area-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.area-chips .pill{font-size:11.5px}
 dialog.ranger-dialog::backdrop{background:rgba(18,34,27,.45)}
 dialog.ranger-dialog form{padding:22px 22px 18px;display:flex;flex-direction:column;gap:14px}
 dialog.ranger-dialog h2{margin:0;font-size:17px}
@@ -197,6 +205,8 @@ h1,h2,h3,.brand-name{font-family:'Bitter',Georgia,serif;letter-spacing:-.005em}
     <div id="login-step-pw">
       <div class="field"><label for="li-email">Email</label><input class="input" id="li-email" type="email" autocomplete="username" required></div>
       <div class="field" style="margin-top:10px"><label for="li-pw">Password</label><input class="input" id="li-pw" type="password" autocomplete="current-password" required></div>
+      <label class="row hint" style="gap:8px;margin-top:10px;font-size:13.5px;color:var(--ink-2)"><input type="checkbox" id="li-remember"> Keep me signed in on this computer for 7 days</label>
+      <p class="hint" style="margin:2px 0 0 26px;font-size:12.5px">Skips the password and code until then. Don’t tick this on a shared computer.</p>
     </div>
     <div id="login-step-new" hidden>
       <p class="hint" style="margin:0">Choose your own password: at least 12 characters, with upper- and lowercase letters and a number.</p>
@@ -530,10 +540,10 @@ h1,h2,h3,.brand-name{font-family:'Bitter',Georgia,serif;letter-spacing:-.005em}
     </section>
     <!-- Admins -->
     <section data-section="admins" hidden>
-      <div class="page-head"><div><h1>Admins</h1><p>People who can sign in here. Every admin can see and change everything: conversations, messages, instructions, documents and settings.</p></div></div>
-      <div class="split">
-        <div class="card" style="padding:6px 6px 0"><div id="adm-table"></div></div>
-        <div class="grid" style="gap:16px">
+      <div class="page-head"><div><h1 id="adm-h1">Admins</h1><p id="adm-intro">People who can sign in here, and what each one can see. Click <strong>Access</strong> to change what someone can see; it takes effect within a minute.</p></div></div>
+      <div class="adm-layout">
+        <div class="card adm-manage" style="padding:6px 6px 0;overflow-x:auto"><div id="adm-table"></div></div>
+        <div class="adm-side">
           <div class="card" id="mfa-card">
             <h2>Your sign-in</h2>
             <p class="sub" id="mfa-status">Checking…</p>
@@ -545,20 +555,22 @@ h1,h2,h3,.brand-name{font-family:'Bitter',Georgia,serif;letter-spacing:-.005em}
             </div>
             <div class="row" style="justify-content:flex-end;margin-top:4px" id="mfa-actions"></div>
           </div>
-          <form class="card" id="adm-form">
+          <form class="card adm-manage" id="adm-form">
             <h2>Invite an admin</h2>
             <p class="sub">They get an email from <span class="mono">no-reply@verificationemail.com</span> with a temporary password, good for 7 days. Tell them to check Junk.</p>
             <div class="field"><label for="adm-email">Email</label><input class="input" id="adm-email" type="email" autocomplete="off" placeholder="name@omag.org" required></div>
+            <fieldset style="border:0;padding:0;margin:12px 0 0"><legend style="font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:6px">What they can see</legend><div id="adm-areas" class="grid" style="gap:6px"></div></fieldset>
             <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn primary" type="submit" id="adm-invite">Send invite</button></div>
           </form>
-          <div class="card hint" style="font-size:13.5px;line-height:1.6">
+          <div class="card hint adm-manage" style="font-size:13.5px;line-height:1.6">
             <h2 style="color:var(--ink)">What the buttons do</h2>
+            <p style="margin:6px 0"><strong>Access</strong>: choose what they can see. Reports = Analytics. Content = Instructions, OMAG documents, sample documents, statute library and answer checks. Conversations and messages = members’ conversations and “Talk to OMAG” notes. Settings = limits, AI model, welcome screen, privacy notice and email lists. Admins = this page. At least one admin always keeps Admins.</p>
             <p style="margin:6px 0"><strong>Resend invite</strong>: for someone who hasn't signed in yet, or whose 7 days ran out. Sends a new temporary password.</p>
             <p style="margin:6px 0"><strong>Reset password</strong>: for someone who's locked out. Emails them a code; they use "Forgot password?" on the sign-in page.</p>
             <p style="margin:6px 0"><strong>Turn off</strong>: they can't sign in, and are signed out within a minute. Reversible.</p>
             <p style="margin:6px 0"><strong>Remove</strong>: deletes their account. To add them back, invite them again.</p>
             <p style="margin:6px 0"><strong>Reset two-step</strong>: for someone who lost or replaced their phone. At their next sign-in they set it up again with the new phone (or, if two-step isn't required, sign in with just their password).</p>
-            <p style="margin:6px 0">You can't turn off or remove yourself.</p>
+            <p style="margin:6px 0">You can't turn off or remove yourself, or take Admins away from yourself.</p>
           </div>
         </div>
       </div>
@@ -588,18 +600,36 @@ function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = fal
 
 /* ================= AUTH (Cognito, no SDK) ================= */
 let AUTH = null;
+// Sign-in is kept for this tab only (sessionStorage), or, with "Keep me signed in", on this
+// computer for 7 days (localStorage). The server also ends refresh tokens after 7 days.
+const KEEP_DAYS = 7;
+const safe = (fn, fallback = null) => { try { return fn(); } catch { return fallback; } };
+function tokStore() {
+  const until = Number(safe(() => localStorage.getItem('ranger.admin.until')) || 0);
+  if (until > Date.now()) return localStorage;
+  if (until) safe(() => ['id', 'refresh', 'email', 'access', 'until'].forEach((k) => localStorage.removeItem('ranger.admin.' + k)));   // ran out
+  return sessionStorage;
+}
 const tok = {
-  get id() { return sessionStorage.getItem('ranger.admin.id'); },
-  get refresh() { return sessionStorage.getItem('ranger.admin.refresh'); },
-  get email() { return sessionStorage.getItem('ranger.admin.email'); },
-  get access() { return sessionStorage.getItem('ranger.admin.access'); },
+  get id() { return safe(() => tokStore().getItem('ranger.admin.id')); },
+  get refresh() { return safe(() => tokStore().getItem('ranger.admin.refresh')); },
+  get email() { return safe(() => tokStore().getItem('ranger.admin.email')); },
+  get access() { return safe(() => tokStore().getItem('ranger.admin.access')); },
+  /** email is passed only when a sign-in finishes; that's when "Keep me signed in" is applied. */
   set(r, email) {
-    if (r.IdToken) sessionStorage.setItem('ranger.admin.id', r.IdToken);
-    if (r.AccessToken) sessionStorage.setItem('ranger.admin.access', r.AccessToken);
-    if (r.RefreshToken) sessionStorage.setItem('ranger.admin.refresh', r.RefreshToken);
-    if (email) sessionStorage.setItem('ranger.admin.email', email);
+    if (email) {
+      this.clear();
+      if (loginState.remember) safe(() => localStorage.setItem('ranger.admin.until', String(Date.now() + KEEP_DAYS * 86400000)));
+    }
+    const st = tokStore();
+    safe(() => {
+      if (r.IdToken) st.setItem('ranger.admin.id', r.IdToken);
+      if (r.AccessToken) st.setItem('ranger.admin.access', r.AccessToken);
+      if (r.RefreshToken) st.setItem('ranger.admin.refresh', r.RefreshToken);
+      if (email) st.setItem('ranger.admin.email', email);
+    });
   },
-  clear() { ['id', 'refresh', 'email', 'access'].forEach((k) => sessionStorage.removeItem('ranger.admin.' + k)); }
+  clear() { for (const st of [sessionStorage, localStorage]) safe(() => ['id', 'refresh', 'email', 'access', 'until'].forEach((k) => st.removeItem('ranger.admin.' + k))); }
 };
 async function cognito(target, body) {
   const r = await fetch(`https://cognito-idp.${AUTH.region}.amazonaws.com/`, {
@@ -634,7 +664,7 @@ async function refreshToken() {
   } catch { return false; }
 }
 
-let loginState = { step: 'pw', session: null, email: '' };
+let loginState = { step: 'pw', session: null, email: '', remember: false };
 function showLogin(msg) {
   $('#app').hidden = true; $('#login').hidden = false;
   $('#login-icon').innerHTML = ICON();
@@ -693,6 +723,7 @@ $('#login-form').addEventListener('submit', async (e) => {
   try {
     if (loginState.step === 'pw') {
       loginState.email = $('#li-email').value.trim().toLowerCase();
+      loginState.remember = $('#li-remember').checked;
       const r = await cognito('InitiateAuth', { AuthFlow: 'USER_PASSWORD_AUTH', ClientId: AUTH.clientId, AuthParameters: { USERNAME: loginState.email, PASSWORD: $('#li-pw').value.trim() } });
       if (!(await signedIn(r))) return;
     } else if (loginState.step === 'new') {
@@ -782,8 +813,15 @@ const askText = (message, value = '', opts = {}) => openDialog({ message, ok: 'S
 
 /* ================= NAV ================= */
 const loaders = {};
+// Which access area each page needs (backend/src/permissions.mjs). The Admins page always shows
+// (as "Your account") so everyone can manage their own two-step sign-in.
+const PAGE_AREA = { analytics: 'reports', instructions: 'content', documents: 'content', samples: 'content', library: 'content', checks: 'content', conversations: 'conversations', messages: 'conversations', settings: 'settings', admins: null };
+let MY_AREAS = null;
+const can = (area) => !MY_AREAS || MY_AREAS.includes(area);
+const canPage = (page) => !PAGE_AREA[page] || can(PAGE_AREA[page]);
 let current = 'analytics';
 function go(page) {
+  if (!canPage(page)) page = Object.keys(PAGE_AREA).find(canPage);
   current = page;
   $$('#nav button').forEach((b) => (b.getAttribute('aria-current') === 'page' ? b.removeAttribute('aria-current') : 0, b.dataset.page === page && b.setAttribute('aria-current', 'page')));
   $$('[data-section]').forEach((s) => (s.hidden = s.dataset.section !== page));
@@ -1566,16 +1604,20 @@ const ADM_STATUS = {
 };
 function renderAdmins(r) {
   const rows = r.admins;
-  $('#adm-table').innerHTML = `<table><thead><tr><th>Admin</th><th>Status</th><th>Two-step</th><th></th></tr></thead><tbody>${rows.map((u) => {
+  allAreas = r.allAreas || allAreas; defaultAreas = r.defaultAreas || defaultAreas;
+  renderInviteAreas();
+  $('#adm-table').innerHTML = `<table><thead><tr><th>Admin</th><th>Can see</th><th>Status</th><th>Two-step</th><th></th></tr></thead><tbody>${rows.map((u) => {
     const [label, tone, note] = !u.enabled ? ['Turned off', 'muted', 'Can’t sign in'] : ADM_STATUS[u.status] || [u.status, 'muted', ''];
     const invited = u.status === 'FORCE_CHANGE_PASSWORD';
     const expired = invited && u.updatedAt && Date.now() - new Date(u.updatedAt) > 7 * 86400000;
     const id = esc(u.username);
     return `<tr>
       <td><strong>${esc(u.email)}</strong>${u.you ? ' <span class="pill muted">You</span>' : ''}<div class="hint">Added ${fmtDate(u.createdAt)}</div></td>
+      <td>${areaChips(u.areas)}</td>
       <td><span class="pill ${expired ? 'bad' : tone}">${expired ? 'Invite expired' : label}</span>${note && !expired ? `<div class="hint" style="margin-top:3px">${note}</div>` : ''}</td>
       <td>${u.mfa === true ? '<span class="pill ok">On</span>' : u.mfa === false ? '<span class="pill muted">Off</span>' : ''}</td>
       <td style="text-align:right"><div class="row" style="justify-content:flex-end;gap:6px">${u.you ? '' : `
+        <button class="btn sm" data-adm="access" data-id="${id}">Access</button>
         ${u.mfa ? `<button class="btn sm" data-adm="reset-mfa" data-id="${id}">Reset two-step</button>` : ''}
         ${u.enabled ? `<button class="btn sm" data-adm="resend" data-id="${id}">${invited ? 'Resend invite' : 'Reset password'}</button>` : ''}
         <button class="btn sm" data-adm="${u.enabled ? 'disable' : 'enable'}" data-id="${id}">${u.enabled ? 'Turn off' : 'Turn on'}</button>
@@ -1585,7 +1627,37 @@ function renderAdmins(r) {
   admins = rows;
 }
 let admins = [];
-loaders.admins = async () => { renderAdmins(await api('GET', '/admin/admins')); loadMfa(); };
+let allAreas = {}, defaultAreas = ['reports', 'content'];
+const areaChips = (areas = []) => (areas.length === Object.keys(allAreas).length
+  ? '<span class="pill ok">Everything</span>'
+  : `<div class="area-chips">${areas.map((a) => `<span class="pill muted">${esc(allAreas[a]?.label || a)}</span>`).join('')}</div>`);
+const areaBoxes = (picked, name) => Object.entries(allAreas).map(([k, a]) => `<label class="area-opt"><input type="checkbox" name="${name}" value="${k}" ${picked.includes(k) ? 'checked' : ''}><span><strong>${esc(a.label)}</strong><br><span class="hint">${esc(a.covers)}</span></span></label>`).join('');
+function renderInviteAreas() {
+  const box = $('#adm-areas'); if (!box || box.dataset.ready) return;
+  box.innerHTML = areaBoxes(defaultAreas, 'inv-area'); box.dataset.ready = '1';
+}
+/** Pick what an admin can see. Resolves to the chosen areas, or null if cancelled. */
+function chooseAreas(u) {
+  return new Promise((resolve) => {
+    const d = document.createElement('dialog');
+    d.className = 'ranger-dialog';
+    d.innerHTML = `<form method="dialog"><h2>What ${esc(u.email)} can see</h2><div class="grid" style="gap:6px">${areaBoxes(u.areas || [], 'area')}</div><p class="hint" style="font-size:13px">Takes effect within a minute. They can always manage their own two-step sign-in.</p><div class="ranger-dialog-actions"><button type="button" class="btn" value="cancel">Cancel</button><button type="submit" class="btn primary" value="ok">Save</button></div></form>`;
+    document.body.appendChild(d);
+    let result = null;
+    d.querySelector('button[value=cancel]').addEventListener('click', () => d.close());
+    d.querySelector('form').addEventListener('submit', (e) => { e.preventDefault(); result = [...d.querySelectorAll('input[name=area]:checked')].map((i) => i.value); d.close(); });
+    d.addEventListener('close', () => { d.remove(); resolve(result); });
+    d.showModal(); d.querySelector('input').focus();
+  });
+}
+loaders.admins = async () => {
+  const manage = can('admins');
+  $$('.adm-manage').forEach((el) => (el.hidden = !manage));
+  $('#adm-h1').textContent = manage ? 'Admins' : 'Your account';
+  $('#adm-intro').textContent = manage ? $('#adm-intro').textContent : 'Your sign-in and two-step verification. Ask an admin who manages access if you need to see more of the admin panel.';
+  if (manage) renderAdmins(await api('GET', '/admin/admins'));
+  loadMfa();
+};
 
 /* ---- your own two-step sign-in (authenticator app) ---- */
 /** Calls Cognito with your access token, refreshing it once if it has expired. */
@@ -1640,12 +1712,21 @@ $('#adm-form').addEventListener('submit', async (e) => {
   const email = $('#adm-email').value.trim(); if (!email) return;
   if (!/@omag\.org$/i.test(email) && !await ask(`${email} isn't an omag.org address. Admins can read every member conversation. Invite them anyway?`, { ok: 'Invite anyway' })) return;
   const btn = $('#adm-invite'); btn.disabled = true;
-  try { const r = await api('POST', '/admin/admins', { email }); renderAdmins(r); $('#adm-email').value = ''; toast(r.message); } catch (err) { fail(err); } finally { btn.disabled = false; }
+  const areas = [...document.querySelectorAll('input[name=inv-area]:checked')].map((i) => i.value);
+  if (!areas.length) { toast('Choose at least one thing they can see.'); return; }
+  try { const r = await api('POST', '/admin/admins', { email, areas }); renderAdmins(r); $('#adm-email').value = ''; toast(r.message); } catch (err) { fail(err); } finally { btn.disabled = false; }
 });
 $('#adm-table').addEventListener('click', async (e) => {
   const b = e.target.closest('[data-adm]'); if (!b) return;
   const u = admins.find((x) => x.username === b.dataset.id); if (!u) return;
   const act = b.dataset.adm;
+  if (act === 'access') {
+    const areas = await chooseAreas(u);
+    if (!areas) return;
+    if (!areas.length) { toast('Choose at least one area, or use Turn off instead.'); return; }
+    try { const r = await api('PUT', `/admin/admins/${encodeURIComponent(u.username)}/access`, { areas }); renderAdmins(r); toast(r.message); } catch (err) { fail(err); }
+    return;
+  }
   const question = {
     resend: u.status === 'FORCE_CHANGE_PASSWORD' ? `Send ${u.email} a new invitation? Their old temporary password stops working.` : `Email ${u.email} a password-reset code? Their current password stops working until they choose a new one.`,
     disable: `Turn off ${u.email}'s access? They'll be signed out within a minute. You can turn it back on later.`,
@@ -1671,8 +1752,12 @@ async function startApp() {
     $('#who').textContent = me.dev ? 'Local mode' : me.email;
     AUTH.mfaRequired = !!me.mfaRequired;
     $('#signout').hidden = !!me.dev;
+    MY_AREAS = me.areas || null;
+    $$('#nav [data-page]').forEach((b) => { b.hidden = !canPage(b.dataset.page); });
+    const accountBtn = $('#nav [data-page="admins"]');
+    if (accountBtn && !can('admins')) accountBtn.textContent = 'Your account';
   } catch (e) { return fail(e); }
-  api('GET', '/admin/contacts').then(({ contacts }) => {
+  if (can('conversations')) api('GET', '/admin/contacts').then(({ contacts }) => {
     const recent = contacts.filter((c) => Date.now() - new Date(c.at) < 7 * 86400000).length;
     $('#msg-count').hidden = !recent; $('#msg-count').textContent = recent;
   }).catch(() => {});

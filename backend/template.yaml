@@ -165,7 +165,7 @@ Resources:
       PreventUserExistenceErrors: ENABLED
       IdTokenValidity: 8
       AccessTokenValidity: 8
-      RefreshTokenValidity: 30
+      RefreshTokenValidity: 7   # days: "Keep me signed in" lasts at most this long
       TokenValidityUnits: { IdToken: hours, AccessToken: hours, RefreshToken: days }
 
   FirstAdmin:
