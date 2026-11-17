@@ -201,7 +201,7 @@ export function parseEnrolledBill(text, { title, name, url, headings = {} }) {
   const blocks = [];
   let cur = null;
   for (const line of lines) {
-    if (/^\s*SECTION\s+\d+\.\s/.test(line)) { if (cur) blocks.push(cur); cur = [line]; continue; }
+    if (/^\s*SECTION\s+\d+\.(\s|$)/.test(line)) { if (cur) blocks.push(cur); cur = [line]; continue; }
     if (/^\s*Passed the (House|Senate)\b/i.test(line)) { if (cur) blocks.push(cur); cur = null; break; }
     if (cur) cur.push(line);
   }
@@ -216,12 +216,21 @@ export function parseEnrolledBill(text, { title, name, url, headings = {} }) {
     const body = flat.slice(m.index + m[0].length).split('\n');
     const paras = [];
     let buf = [];
+    let marker = null;   // a list marker ("a.", "7.") printed alone on its line, waiting for its text
     for (const raw of body) {
       const l = raw.trim();
-      if (!l) continue;   // enrolled bills are double-spaced: blank lines don't mark paragraphs
+      if (!l) continue;   // blank lines don't reliably mark paragraphs in enrolled bills
+      if (/^\(?[A-Za-z0-9]{1,3}[.)]$/.test(l)) {
+        if (buf.length) { paras.push(buf.join(' ')); buf = []; }
+        if (marker) paras.push(marker);   // two markers in a row: keep the first on its own
+        marker = l;
+        continue;
+      }
+      if (marker) { buf = [`${marker} ${l}`]; marker = null; continue; }
       if (buf.length && /^(\(?[A-Za-z0-9]{1,3}[.)])\s/.test(l)) { paras.push(buf.join(' ')); buf = []; }
       buf.push(l);
     }
+    if (marker) buf.push(marker);
     if (buf.length) paras.push(buf.join(' '));
     const textOut = paras.map((p) => p.replace(/\s+/g, ' ').trim()).filter(Boolean).join('\n\n');
     if (!textOut) continue;

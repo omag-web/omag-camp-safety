@@ -224,3 +224,56 @@ test('parseEnrolledBill keeps new-law sections, drops amendments and footers', (
   assert.equal(assess.text, 'A. Each camp shall conduct an assessment.\n\nB. The assessment shall be reviewed.');
   assert.match(assess.source, /HB 1675/);
 });
+
+// How pdftotext actually prints the enrolled HB 1675 (checked on GitHub's runner, Nov 2026):
+// "SECTION 1." alone on a line, footer and page number on separate lines, list markers alone.
+const BILL_REAL = `BE IT ENACTED BY THE PEOPLE OF THE STATE OF OKLAHOMA:
+SECTION 1.
+NEW LAW
+A new section of law to be codified
+in the Oklahoma Statutes as Section 683.24C of Title 63, unless
+there is created a duplication in numbering, reads as follows:
+As used in this act:
+1. “Camp facility” means an operator of a facility that hosts
+or is rented by multiple youth camps;
+
+\f2. “Hazard exposure zone” means an area;
+a.
+
+flooding or flash flooding,
+
+b.
+
+high winds,
+
+ENR. H. B. NO. 1675
+
+Page 2
+
+\fc.
+
+operates for compensation.
+
+SECTION 2.
+NEW LAW
+A new section of law to be codified
+in the Oklahoma Statutes as Section 683.24D of Title 63, unless
+there is created a duplication in numbering, reads as follows:
+This act applies to all camp facilities, youth camps, and
+outdoor programs operating within this state except:
+1. Programs conducted solely on a single-day basis.
+Passed the House of Representatives the 5th day of May, 2026.`;
+
+test('parseEnrolledBill reads the real enrolled-bill layout', () => {
+  const secs = parseEnrolledBill(BILL_REAL, { title: '63', name: 'HB 1675 (2026), enrolled', url: 'https://x.gov/hb.pdf' });
+  assert.deepEqual(secs.map((s) => s.id), ['63-683.24C', '63-683.24D']);
+  assert.deepEqual(secs[0].text.split('\n\n'), [
+    'As used in this act:',
+    '1. “Camp facility” means an operator of a facility that hosts or is rented by multiple youth camps;',
+    '2. “Hazard exposure zone” means an area;',
+    'a. flooding or flash flooding,',
+    'b. high winds,',
+    'c. operates for compensation.'
+  ]);
+  assert.match(secs[1].text, /^This act applies .* except:\n\n1\. Programs conducted solely/);
+});

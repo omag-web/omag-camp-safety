@@ -5,8 +5,16 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - run: |
           sudo apt-get install -y -q poppler-utils >/dev/null
-          curl -sfL -A "Mozilla/5.0" "https://www.oklahoma.gov/content/dam/ok/en/oem/documents/programs-and-services/HB1675-Enrolled.pdf" -o hb.pdf; echo "curl exit $? size $(stat -c%s hb.pdf 2>/dev/null)"; file hb.pdf
-          pdftotext -enc UTF-8 hb.pdf - | head -120 | cat -A | cut -c1-160
-          echo ==== SECTION lines; pdftotext -enc UTF-8 hb.pdf - | grep -nE "SECTION|codified|NEW LAW|ENR|Page " | head -40
+          curl -sfL "https://www.oklahoma.gov/content/dam/ok/en/oem/documents/programs-and-services/HB1675-Enrolled.pdf" -o /tmp/hb.pdf
+          pdftotext -enc UTF-8 /tmp/hb.pdf /tmp/hb.txt
+          node --input-type=module -e '
+            import { readFileSync } from "node:fs";
+            import { parseEnrolledBill } from "./knowledge/scripts/parse.mjs";
+            const cfg = JSON.parse(readFileSync("knowledge/sources.json", "utf8")).bills[0];
+            const secs = parseEnrolledBill(readFileSync("/tmp/hb.txt", "utf8"), cfg);
+            console.log("SECTIONS", secs.length, secs.map((s) => s.id).join(" "));
+            for (const s of secs) console.log("----", s.id, s.heading, s.text.length, "chars\n" + s.text.slice(0, 700));
+          '
