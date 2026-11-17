@@ -104,7 +104,7 @@ Everything day to day is done in the admin panel, with no GitHub or AWS console 
 | See usage: questions over time, topics, most-cited laws, busy hours, municipalities, helpful rate, response time, cost; download everything as CSV | **Analytics** (set the Bedrock token prices under **Settings** to see a cost estimate) |
 | Read what members asked, and see 👎 answers | **Conversations** |
 | Read "Talk to OMAG" messages | **Talk to OMAG** (also emailed to the **"Talk to OMAG" messages** list under **Settings → Who gets Ranger's emails**) |
-| Change the welcome text, starter questions, disclaimer, phone, privacy notice, how long conversations are kept, model, backup model or daily limits | **Settings** |
+| Change the welcome text, starter questions, disclaimer, phone, privacy notice, how long conversations are kept (18 months by default), model, backup model or daily limits | **Settings**. Answers to Ranger's own question cards don't count toward the per-person daily limit. |
 | Choose who gets "Talk to OMAG" messages, and separately who gets alarm and failure emails | **Settings → Who gets Ranger's emails**: two lists. New addresses must click AWS's confirmation email first. Until someone confirms on the messages list, members' notes go to the alerts list so none are lost. |
 | Add, remove or re-invite admins | **Admins** |
 | Show Ranger a good example of a document | **Sample documents → New sample**: give it a title and a "what it covers" line, upload a plain Word file (one for every program type, or one per type), then switch it on. Ranger reads it as a guide and writes fresh; it doesn't copy the wording. |
@@ -114,7 +114,7 @@ Everything day to day is done in the admin panel, with no GitHub or AWS console 
 
 Some things are built into the code and can't be changed in the panel: Ranger identifies itself as an AI assistant, reads the actual sections before citing them, drops citations it didn't read, never invents hazard findings, ratings, approvals or completed drills, marks every draft as pending review, never says a site is compliant, and never presents itself as legal counsel, an emergency manager or an engineer.
 
-**Privacy.** The AI runs inside OMAG's AWS account through Amazon Bedrock. Members' questions aren't sent to OpenAI or used to train models. Ranger itself saves conversations (for 2 years by default; change it under **Settings → Privacy notice**) so admins can review them, so it also guards against personal details:
+**Privacy.** The AI runs inside OMAG's AWS account through Amazon Bedrock. Members' questions aren't sent to OpenAI or used to train models. Ranger itself saves conversations (for 18 months by default; change it under **Settings → Privacy notice**) so admins can review them, so it also guards against personal details:
 - The member page warns before sending a message that looks like it contains a Social Security, card, bank account or driver's license number, a birth date, an email address or a phone number, and offers to remove them.
 - The server removes ID numbers, account numbers and birth dates again before anything reaches the AI or the logs. This also covers "Talk to OMAG" messages.
 - Ranger never repeats personal details back and refers to people by role.

@@ -25,7 +25,7 @@ Parameters:
     Description: Questions per day across everyone — a hard ceiling on spend.
   RetentionDays:
     Type: Number
-    Default: 730
+    Default: 548   # 18 months
     Description: Days to keep conversation logs before DynamoDB deletes them.
   AdminEmail:
     Type: String

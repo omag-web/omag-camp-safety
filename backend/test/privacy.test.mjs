@@ -60,7 +60,7 @@ test('privacy notice: default text, editable in settings, reset by saving the de
   let c = await call('GET', '/config');
   assert.match(c.privacyNotice, /## What we keep/);
   assert.match(c.privacyNotice, /\{retention\}/);
-  assert.equal(c.retentionDays, 730);
+  assert.equal(c.retentionDays, 548, '18 months');
   const a = await call('GET', '/admin/settings');
   assert.equal(a.privacyDefault, c.privacyNotice);
   await call('PUT', '/admin/settings', { privacyNotice: '## Privacy\nCustom notice.' });

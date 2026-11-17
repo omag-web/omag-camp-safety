@@ -59,7 +59,6 @@ svg{flex:none}
 .title{margin:0;font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (min-width:901px){.topbar{flex-wrap:nowrap}.topbar-left{flex:1 1 0;min-width:0}.topbar-left>div{flex:0 1 auto;min-width:0}.gov-control,.topbar-right{flex:none}}
 .subtitle{font-size:12.5px;color:var(--muted)}
-.demo-pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;background:var(--gold-bg);border:1px solid var(--gold-line);color:var(--gold-ink);font-size:12px;font-weight:600;white-space:nowrap}
 .topbar-right{display:flex;gap:8px;align-items:center}
 .gov-control{display:flex;align-items:center;gap:8px;padding:4px 6px 4px 12px;border-radius:10px;background:var(--accent-bg);border:1px solid var(--accent-line)}
 .gov-control label{font-size:12px;font-weight:700;color:var(--accent-dk);white-space:nowrap;display:flex;align-items:center;gap:6px}
@@ -101,6 +100,28 @@ svg{flex:none}
 .context-line{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
 .context-line .gov{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;background:#f3efe4;border:1px solid var(--line);color:var(--ink-2);font-weight:600}
 .linkish{background:none;border:none;padding:0;color:var(--accent-dk);text-decoration:underline;font-weight:600;font-size:13px}
+.notice{display:flex;gap:12px;padding:12px 16px;border-radius:12px;background:#f5f1e7;border:1px solid var(--line-2);font-size:14px;line-height:1.55;color:var(--ink-2);margin:0 0 20px}
+.notice p{margin:0}.notice p+p{margin-top:4px}
+.notice .link-btn{font-size:inherit}
+.welcome .notice{text-align:left;margin:4px 0 18px}
+.notice-modal p{margin:0 0 10px;font-size:15px;line-height:1.6}
+/* questions Ranger asks (ask_member) */
+.q-card{margin-top:10px;border:1px solid var(--accent-line);background:#fff;border-radius:14px;padding:14px 16px;max-width:560px;box-shadow:0 1px 3px rgba(30,58,47,.08)}
+.q-kicker{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-dk);margin-bottom:6px}
+.q-title{margin:0;font-size:16px;font-weight:700;color:var(--ink);line-height:1.4}
+.q-hint{margin:4px 0 0;font-size:13px;color:var(--muted)}
+.q-card fieldset{border:0;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.q-opt{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;font-size:14.5px;color:var(--ink);background:#fff}
+.q-opt:hover{border-color:var(--accent-line);background:var(--accent-bg)}
+.q-opt input{width:18px;height:18px;margin:0;accent-color:var(--accent);flex:none}
+.q-opt:has(input:checked){border-color:var(--accent);background:var(--accent-bg)}
+.q-other-text,.q-text{width:100%;margin-top:6px;padding:9px 12px;border:1px solid var(--line-2);border-radius:10px;font:inherit;font-size:14.5px}
+.q-other-text:focus,.q-text:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,107,79,.14)}
+.q-submit{width:100%;margin-top:12px;min-height:42px;border-radius:999px}
+.q-card.answered{background:var(--bg);box-shadow:none}
+.q-card.answered .q-opt{cursor:default;opacity:.75}
+.q-card.answered .q-opt:has(input:checked){opacity:1}
+.q-answer{margin-top:8px;font-size:13.5px;color:var(--ink-2)}
 .callout{display:flex;gap:12px;padding:14px 16px;border-radius:12px;background:var(--gold-bg);border:1px solid var(--gold-line);font-size:14px;line-height:1.55;color:#3d3110}
 .callout.legal{background:#f5f1e7;border-color:var(--line-2);color:var(--ink-2)}
 .suggest{display:flex;flex-wrap:wrap;gap:8px}
@@ -151,32 +172,6 @@ svg{flex:none}
 .privacy-quote{padding:10px 12px;border-radius:10px;background:#f5f1e7;border:1px solid var(--line-2);font-size:14px;white-space:pre-wrap;max-height:180px;overflow:auto}
 .privacy-quote mark{background:#fbdcb4;border-radius:3px;padding:0 2px}
 .privacy-note{display:block;margin-top:2px}
-.conv-notice{display:flex;gap:12px;padding:12px 16px;border-radius:12px;background:#f5f1e7;border:1px solid var(--line-2);font-size:14px;line-height:1.55;color:var(--ink-2);margin-bottom:22px}
-.conv-notice p{margin:0}
-.conv-notice p+p{margin-top:4px}
-.welcome .conv-notice{text-align:left;margin:4px 0 18px}
-.composer-wrap{position:relative}
-.choice-pop{position:absolute;left:20px;right:20px;bottom:calc(100% - 4px);max-width:800px;margin:0 auto;background:#fff;border:1px solid var(--accent-line);border-radius:16px;box-shadow:0 -4px 28px rgba(30,58,47,.16);padding:14px 16px 16px;z-index:5;max-height:min(70vh,560px);overflow:auto;animation:choiceIn .18s ease-out}
-@keyframes choiceIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.choice-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
-.choice-kicker{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-dk)}
-.choice-close{border:none;background:none;color:var(--muted);font-size:13px;font-weight:600;padding:4px 6px;border-radius:6px}
-.choice-close:hover{background:#f2efe6;color:var(--ink)}
-.choice-q{font-size:16px;font-weight:600;color:var(--ink);margin:0 0 12px;line-height:1.4}
-.choice-opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
-.choice-opt{display:flex;align-items:center;gap:10px;text-align:left;padding:10px 12px;border:1px solid var(--line-2);border-radius:10px;background:#fff;font-size:14.5px;line-height:1.35;min-height:46px;transition:border-color .12s,background .12s}
-.choice-opt:hover{border-color:var(--accent);background:var(--accent-bg)}
-.choice-opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-bg);box-shadow:inset 0 0 0 1px var(--accent)}
-.choice-key{flex:none;width:24px;height:24px;border-radius:6px;border:1px solid var(--line-2);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--muted);background:#faf8f2}
-.choice-opt[aria-pressed="true"] .choice-key{background:var(--accent);border-color:var(--accent);color:#fff}
-.choice-other-row{display:flex;gap:8px;margin-top:10px}
-.choice-other-row input{flex:1;min-width:0;border:1px solid var(--line-2);border-radius:10px;padding:9px 12px;font-size:14.5px}
-.choice-other-row input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,107,79,.14)}
-.choice-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}
-.choice-hint{font-size:13px;color:var(--muted)}
-.choice-again{margin-top:10px}
-body.choosing .choice-again{display:none}
-@media (max-width:900px){.choice-pop{left:12px;right:12px}.choice-opts{grid-template-columns:1fr}}
 .link-btn{border:none;background:none;padding:0;font:inherit;color:var(--accent-dk);text-decoration:underline;cursor:pointer}
 .privacy-body h4{font-size:15px;margin:16px 0 6px;color:var(--navy)}
 .privacy-body h4:first-child{margin-top:0}
@@ -346,7 +341,6 @@ h1,h2,h3,.title,.brand-name,.welcome h2,.panel-title,.doc-page h1{font-family:'B
           <h1 class="title" id="conv-title">New conversation</h1>
           <div class="subtitle hide-sm">Oklahoma camp safety law (HB 1675)</div>
         </div>
-        <span class="demo-pill hide-sm" title="Ranger is new. Answers can be wrong; check the cited sections and confirm with county emergency management, your attorney or OMAG.">Beta</span>
       </div>
       <div class="gov-control" id="gov-control">
         <label for="gov-select"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20z"/><path d="M12 11l-3 9h6z"/></svg>Program type</label>
@@ -365,7 +359,6 @@ h1,h2,h3,.title,.brand-name,.welcome h2,.panel-title,.doc-page h1{font-family:'B
     </div>
 
     <div class="composer-wrap">
-      <div class="choice-pop" id="choice-pop" role="dialog" aria-modal="false" aria-labelledby="choice-q" hidden></div>
       <form class="composer" id="composer" autocomplete="off">
         <div class="composer-box">
           <div id="attach-chip" class="attach-chip" hidden></div>
@@ -464,9 +457,6 @@ const ICON = {
 };
 const callout = html => `<div class="callout">${ICON.info}<div>${html}</div></div>`;
 const legal = (topic) => `<div class="callout legal">${ICON.scale}<div>${topic || 'Confirm coverage questions with your municipal attorney, county emergency management or OMAG before relying on them.'}</div></div>`;
-const PRIVACY_LINE = 'Please leave out names, ID numbers, medical details and anything that identifies a child.';
-/** The legal and privacy notice shown at the start of every conversation. */
-const noticeHtml = () => `<div class="conv-notice block" role="note">${ICON.scale}<div><p>${esc(SITE.disclaimer)}</p><p>${esc(PRIVACY_LINE)} <button type="button" class="link-btn" data-action="privacy">Privacy</button></p></div></div>`;
 const suggest = items => `<div class="suggest">${items.map(([label,q])=>`<button type="button" class="chip-btn" data-ask="${esc(q||label)}">${esc(label)}</button>`).join('')}</div>`;
 
 /* ============ LIVE: config, identity, history ============ */
@@ -504,7 +494,7 @@ const SITE = {
   disclaimer: 'Answers and drafts are general information, not legal advice or a compliance determination. Review plans with your municipal attorney, county emergency management and OMAG.',
   contactPhone: '1-800-234-9461',
   privacyNotice: '',
-  retentionDays: 730
+  retentionDays: 548
 };
 async function loadSiteSettings() {
   if (!API) return;
@@ -587,17 +577,12 @@ function finishAnswer(ui, msg) {
   // markers resolve to library ids for the source panel
   ui.answer.querySelectorAll('.cite').forEach((b) => { const c = (msg.citations || []).find((x) => x.marker === b.dataset.cite || x.id === b.dataset.cite); if (c) b.dataset.cite = c.id; });
   if (msg.unread?.length) ui.answer.insertAdjacentHTML('beforeend', `<p class="note-muted">${msg.unread.length === 1 ? 'One reference' : msg.unread.length + ' references'} couldn't be verified against the statute library and ${msg.unread.length === 1 ? 'was' : 'were'} removed.</p>`);
+  if (msg.question) ui.body.appendChild(questionCard(msg));
   if (msg.draft) {
     const box = document.createElement('div');
     box.className = 'block doc-offers';
     box.innerHTML = `<div class="doc-offer">${ICON.file}<div><strong>${esc(msg.draft.title)}</strong><span>${esc(msg.draft.subtitle ? `Written for ${msg.draft.subtitle.replace(/,\s*Oklahoma$/i, '')}` : 'Written for your camp')} · Word document</span></div><span class="doc-actions"><button type="button" class="btn" data-draft-preview>${ICON.eye} Preview</button><button type="button" class="btn primary" data-draft-download>${ICON.dl} Download Word</button></span></div>`;
     ui.body.appendChild(box);
-  }
-  if (msg.choice) {
-    const again = document.createElement('div');
-    again.className = 'block choice-again';
-    again.innerHTML = `<button type="button" class="btn sm" data-choice-reopen>Show answer choices</button>`;
-    ui.body.appendChild(again);
   }
   const t = document.createElement('div');
   t.className = 'tools block';
@@ -610,9 +595,9 @@ function finishAnswer(ui, msg) {
 async function askLive(q) {
   if (state.busy || !q.trim()) return;
   closeSidebar();
-  hideChoice(true);
   const att = state.attach && !state.attach.loading ? { name: state.attach.name, text: state.attach.text } : null;
   state.attach = null; renderAttachChip();
+  closeOpenQuestion(q);   // answering by card or by typing both close the open question
   addUser(q, att?.name);
   if (!conv.title) { conv.title = att && /^Please review the attached/.test(q) ? `Review: ${att.name}`.slice(0, 48) : q.length > 48 ? q.slice(0, 46).trim() + '…' : q; $('#conv-title').textContent = conv.title; }
   conv.form = state.form;
@@ -640,7 +625,7 @@ async function askLive(q) {
       body: JSON.stringify({
         conversationId: conv.id, browserId, form: state.form,
         city: state.muniSet ? state.muni : undefined,
-        messages: withDraft(conv.messages.filter((m) => m.role === 'user' || m.role === 'assistant').map(({ role, text, attachments, choice }) => ({ role, text, ...(attachments ? { attachments } : {}), ...(choice ? { choice } : {}) })).slice(-40))
+        messages: withDraft(conv.messages.filter((m) => m.role === 'user' || m.role === 'assistant').map(({ role, text, attachments, question }) => ({ role, text, ...(attachments ? { attachments } : {}), ...(question ? { question } : {}) })).slice(-80))
       })
     });
     if (!res.ok) {
@@ -671,16 +656,17 @@ async function askLive(q) {
     }
     if (raf) cancelAnimationFrame(raf);
     if (!done) throw new Error('The answer was cut off. Please try again.');
-    const msg = { role: 'assistant', text: acc, citations: done.citations, unread: done.unread, turnId: done.turnId, draft: done.draft || undefined, choice: done.choice || undefined };
+    const msg = { role: 'assistant', text: acc, citations: done.citations, unread: done.unread, turnId: done.turnId, draft: done.draft || undefined, question: done.question || undefined };
     finishAnswer(ui, msg);
     conv.messages.push(msg);
     saveConv();
-    if (msg.choice) showChoice(msg);
   } catch (e) {
     if (raf) cancelAnimationFrame(raf);
     fail(e.message || 'Something went wrong. Please try again.');
   } finally {
     state.busy = false; updateSend(); scrollDown();
+    inner.querySelectorAll('.q-card:not(.answered)').forEach(refreshCard);
+    inner.querySelector('.q-card:not(.answered) input:not([disabled])')?.focus({ preventScroll: true });
   }
 }
 
@@ -732,7 +718,6 @@ function openConv(id) {
   conv = c;
   if (c.form && FORMS[c.form] && c.form !== state.form) { state.form = c.form; renderGov(); }
   started = true; state.docs = {};
-  hideChoice(true);
   inner.innerHTML = noticeHtml();
   $('#conv-title').textContent = c.title || 'Conversation';
   for (const m of c.messages) {
@@ -742,10 +727,72 @@ function openConv(id) {
     finishAnswer(ui, m);
   }
   setActive(id);
-  const last = c.messages[c.messages.length - 1];
-  if (last?.role === 'assistant' && last.choice) showChoice(last);
-  else { document.querySelectorAll('.choice-again').forEach((b) => b.remove()); scrollDown(); }
 }
+
+/* ============ NOTICE (shown at the start of every conversation) ============ */
+function noticeHtml() {
+  return `<div class="notice block" role="note">${ICON.scale}<div><p>${esc(SITE.disclaimer)}</p><p>Please leave out names, ID numbers, medical details and anything that identifies a child. <button type="button" class="link-btn" data-action="privacy">Privacy</button></p></div></div>`;
+}
+/** The legal and privacy notice as a pop-up, each time a new conversation starts. */
+function showNotice() {
+  openModal('Before you start', `<div class="notice-modal"><p>${esc(SITE.disclaimer)}</p><p>Please leave out names, ID numbers, medical details and anything that identifies a child. <button type="button" class="link-btn" data-action="privacy">Read how Ranger handles privacy</button></p></div>`,
+    '<button type="button" class="btn primary" data-action="close-modal" style="min-width:140px">I understand</button>');
+  $('#modal-foot [data-action="close-modal"]').focus();
+}
+
+/* ============ QUESTIONS RANGER ASKS (ask_member) ============ */
+const Q_ICON = '<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></svg>';
+let qSeq = 0;
+function questionCard(msg) {
+  const q = msg.question, n = ++qSeq, answered = msg.answer !== undefined;
+  const type = q.kind === 'multi' ? 'checkbox' : 'radio';
+  const picked = new Set(answered ? splitAnswer(msg.answer) : []);
+  const opts = q.kind === 'text' ? '' : `<fieldset><legend class="sr-only">${esc(q.question)}</legend>${q.options.map((o) => `<label class="q-opt"><input type="${type}" name="q${n}" value="${esc(o)}" ${picked.has(o) ? 'checked' : ''} ${answered ? 'disabled' : ''}> <span>${esc(o)}</span></label>`).join('')}${q.allowOther ? `<label class="q-opt"><input type="${type}" name="q${n}" value="__other" ${answered && [...picked].some((x) => !q.options.includes(x)) ? 'checked' : ''} ${answered ? 'disabled' : ''}> <span>Something else</span></label><input class="q-other-text" type="text" maxlength="300" placeholder="Type your answer" aria-label="Your answer" hidden>` : ''}</fieldset>`;
+  const text = q.kind === 'text' ? `<input class="q-text" type="text" maxlength="300" placeholder="${esc(q.placeholder || 'Type your answer')}" aria-label="${esc(q.question)}" ${answered ? 'disabled' : ''}>` : '';
+  const div = document.createElement('div');
+  div.className = 'q-card block' + (answered ? ' answered' : '');
+  div.innerHTML = `<div class="q-kicker">${Q_ICON} Question</div><p class="q-title">${esc(q.question)}</p>${q.hint ? `<p class="q-hint">${esc(q.hint)}</p>` : q.kind === 'multi' ? '<p class="q-hint">Choose any that apply.</p>' : q.kind === 'choice' ? '<p class="q-hint">Choose one option.</p>' : ''}${opts}${text}${answered ? `<p class="q-answer">You answered: <strong>${esc(msg.answer)}</strong></p>` : '<button type="button" class="btn primary q-submit" data-q-submit disabled>Submit answer →</button>'}`;
+  div._msg = msg;
+  return div;
+}
+const splitAnswer = (a) => String(a).split(/, | and /).map((x) => x.trim()).filter(Boolean);
+const joinAnswer = (xs) => xs.length < 2 ? (xs[0] || '') : `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}`;
+/** What the member picked or typed, or '' if nothing yet. */
+function cardAnswer(card) {
+  const q = card._msg.question;
+  if (q.kind === 'text') return card.querySelector('.q-text').value.trim();
+  const other = card.querySelector('.q-other-text');
+  const picks = [...card.querySelectorAll('input:checked')].map((i) => (i.value === '__other' ? other.value.trim() : i.value)).filter(Boolean);
+  return joinAnswer(picks);
+}
+function refreshCard(card) {
+  const other = card.querySelector('.q-other-text');
+  if (other) {
+    const on = !!card.querySelector('input[value="__other"]:checked');
+    if (other.hidden === on) { other.hidden = !on; if (on) other.focus(); }
+  }
+  const b = card.querySelector('[data-q-submit]');
+  if (b) b.disabled = state.busy || !cardAnswer(card);
+}
+/** Marks the open question as answered (by the card, or by a message typed in the box instead). */
+function closeOpenQuestion(answer) {
+  const m = [...conv.messages].reverse().find((x) => x.role === 'assistant');
+  if (!m?.question || m.answer !== undefined) return;
+  m.answer = answer;
+  const card = [...inner.querySelectorAll('.q-card:not(.answered)')].find((c) => c._msg === m);
+  if (card) card.replaceWith(questionCard(m));
+}
+function submitCard(card) {
+  const a = cardAnswer(card);
+  if (!a || state.busy) return;
+  ask(a);
+}
+inner.addEventListener('change', (e) => { const c = e.target.closest('.q-card'); if (c) refreshCard(c); });
+inner.addEventListener('input', (e) => { const c = e.target.closest('.q-card'); if (c) refreshCard(c); });
+inner.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' || !e.target.matches('.q-text, .q-other-text')) return;
+  e.preventDefault(); submitCard(e.target.closest('.q-card'));
+});
 
 /* ============ CONTACT ============ */
 function openContact() {
@@ -809,7 +856,6 @@ async function vote(btn) {
 let started = false;
 function renderWelcome(){
   started = false; state.docs = {}; conv = newConv();
-  hideChoice(true);
   $('#conv-title').textContent = 'New conversation';
   setActive(null); renderRecent();
   inner.innerHTML = `<div class="welcome">
@@ -819,7 +865,6 @@ function renderWelcome(){
       ${API ? '' : `<div class="offline">${ICON.info}<div><strong>Not connected yet.</strong> Set <code>apiUrl</code> in <code>web/config.js</code> after deploying the backend.</div></div>`}
       <p>${esc(personalize(SITE.welcomeText))}</p>
     </div>
-    ${noticeHtml()}
     <div class="starters">
       ${SITE.starters.map((st) => {
         const shown = personalize(st.text);
@@ -859,90 +904,6 @@ async function addAI(ans){
   state.busy = false; updateSend();
 }
 
-
-/* ============ MULTIPLE-CHOICE POP-UP ============ */
-// Ranger asks one question at a time. When a question has a short list of answers it arrives with
-// `choice` ({question, options, multiple, exclusive, other}) and shows here, above the message box.
-const pop = $('#choice-pop');
-let choice = null;   // { msg, picked: Set<number> }
-const CHECK = '<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
-function joinAnswers(list) { return list.length < 3 ? list.join(' and ') : `${list.slice(0, -1).join(', ')} and ${list[list.length - 1]}`; }
-function showChoice(msg) {
-  const c = msg.choice; if (!c?.options?.length) return;
-  choice = { msg, picked: new Set() };
-  const multi = !!c.multiple;
-  pop.innerHTML = `<div class="choice-head"><span class="choice-kicker">${multi ? 'Choose all that apply' : 'Choose one'}</span><button type="button" class="choice-close" data-choice="close">Type instead ✕</button></div>
-    <p class="choice-q" id="choice-q">${esc(c.question)}</p>
-    <div class="choice-opts" role="group" aria-labelledby="choice-q">${c.options.map((o, i) => `<button type="button" class="choice-opt" data-choice-opt="${i}" aria-pressed="false"><span class="choice-key" aria-hidden="true">${multi ? '' : i + 1}</span><span>${esc(o)}</span></button>`).join('')}</div>
-    ${c.other !== false ? `<div class="choice-other-row"><label for="choice-other" class="sr-only">Something else</label><input id="choice-other" maxlength="400" placeholder="${multi ? 'Something else? Type it here (optional)' : 'Something else? Type your answer'}">${multi ? '' : '<button type="button" class="btn primary sm" data-choice="send-other">Send</button>'}</div>` : ''}
-    ${multi ? `<div class="choice-foot"><span class="choice-hint" id="choice-hint">Pick one or more.</span><button type="button" class="btn primary" data-choice="send" disabled>Send</button></div>` : ''}`;
-  pop.hidden = false; document.body.classList.add('choosing');
-  // Only the newest question can still be answered.
-  document.querySelectorAll('.choice-again').forEach((b) => { if (b.closest('.ai-body')?._msg !== msg) b.remove(); });
-  inner.style.paddingBottom = pop.offsetHeight + 16 + 'px';
-  scrollDown();
-  pop.querySelector('.choice-opt')?.focus({ preventScroll: true });
-}
-/** Hides the pop-up. `answered` also removes the "Show answer choices" buttons (the question has moved on). */
-function hideChoice(answered) {
-  pop.hidden = true; pop.innerHTML = ''; choice = null; document.body.classList.remove('choosing'); inner.style.paddingBottom = '';
-  if (answered) document.querySelectorAll('.choice-again').forEach((b) => b.remove());
-}
-function updateChoice() {
-  const c = choice.msg.choice;
-  pop.querySelectorAll('[data-choice-opt]').forEach((b) => {
-    const on = choice.picked.has(+b.dataset.choiceOpt);
-    b.setAttribute('aria-pressed', String(on));
-    b.querySelector('.choice-key').innerHTML = on ? CHECK : '';
-  });
-  const typed = $('#choice-other')?.value.trim();
-  const n = choice.picked.size + (typed ? 1 : 0);
-  const send = pop.querySelector('[data-choice="send"]'); if (send) send.disabled = !n;
-  const hint = $('#choice-hint'); if (hint) hint.textContent = n ? `${n} selected.` : 'Pick one or more.';
-  if (c.exclusive?.length && hint && !n) hint.textContent = `Pick one or more. “${c.exclusive.join('” and “')}” can’t be combined with others.`;
-}
-function pickChoice(i) {
-  const c = choice.msg.choice;
-  if (!c.multiple) return answerChoice(c.options[i]);
-  const isEx = (j) => (c.exclusive || []).includes(c.options[j]);
-  if (choice.picked.has(i)) choice.picked.delete(i);
-  else {
-    // "None" or "Not sure" can't sit alongside other answers.
-    if (isEx(i)) choice.picked.clear(); else [...choice.picked].filter(isEx).forEach((j) => choice.picked.delete(j));
-    choice.picked.add(i);
-  }
-  updateChoice();
-}
-function answerChoice(text) {
-  if (!text || state.busy) return;
-  hideChoice(true);
-  sendWithPrivacyCheck(text);
-}
-pop.addEventListener('click', (e) => {
-  const b = e.target.closest('button'); if (!b || !choice) return;
-  const c = choice.msg.choice;
-  if (b.dataset.choiceOpt !== undefined) return pickChoice(+b.dataset.choiceOpt);
-  const act = b.dataset.choice;
-  if (act === 'close') { hideChoice(false); ta.focus(); }
-  else if (act === 'send-other') { const v = $('#choice-other').value.trim(); if (v) answerChoice(v); else $('#choice-other').focus(); }
-  else if (act === 'send') {
-    const typed = $('#choice-other')?.value.trim();
-    answerChoice(joinAnswers([...[...choice.picked].sort((a, b) => a - b).map((i) => c.options[i]), ...(typed ? [typed] : [])]));
-  }
-});
-pop.addEventListener('input', (e) => { if (e.target.id === 'choice-other' && choice?.msg.choice.multiple) updateChoice(); });
-pop.addEventListener('keydown', (e) => {
-  if (!choice) return;
-  if (e.key === 'Escape') { e.stopPropagation(); hideChoice(false); ta.focus(); return; }
-  if (e.target.id === 'choice-other') {
-    if (e.key === 'Enter') { e.preventDefault(); pop.querySelector(choice.msg.choice.multiple ? '[data-choice="send"]' : '[data-choice="send-other"]')?.click(); }
-    return;
-  }
-  // Number keys pick an answer.
-  const n = Number(e.key);
-  if (n >= 1 && n <= choice.msg.choice.options.length && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); pickChoice(n - 1); }
-});
-window.addEventListener('resize', () => { if (choice) inner.style.paddingBottom = pop.offsetHeight + 16 + 'px'; });
 
 /* ============ MODALS ============ */
 function openModal(title, body, foot, wide){
@@ -1133,9 +1094,10 @@ document.addEventListener('click', (e) => {
 
 /* ============ PRIVACY NOTICE ============ */
 function retentionText(days) {
-  days = Number(days) || 730;
+  days = Number(days) || 548;
   if (days % 365 === 0) return days === 365 ? '1 year' : `${days / 365} years`;
-  if (days % 30 === 0 && days < 365) return `${days / 30} months`;
+  const months = Math.round(days / 30.4375);   // average month
+  if (Math.abs(months * 30.4375 - days) <= 1) return months === 1 ? '1 month' : `${months} months`;
   return `${days} days`;
 }
 async function openPrivacy() {
@@ -1156,7 +1118,7 @@ function askClearDevice() {
 function clearDevice() {
   try { localStorage.removeItem('ranger.history'); localStorage.removeItem('ranger.muni'); } catch {}
   state.muni = 'City of Example'; state.muniSet = false;
-  closeModal(); renderRecent(); renderWelcome();
+  closeModal(); renderRecent(); renderWelcome(); showNotice();
   toast('Cleared from this browser.');
 }
 
@@ -1203,14 +1165,14 @@ document.addEventListener('click', e=>{
   if (t.dataset.ask){ closeModal(); ask(t.dataset.ask); return; }
   if (t.dataset.docStarter !== undefined){ closeModal(); startFromStarter(t.dataset.docStarter); return; }
   if (t.dataset.write !== undefined){ closeModal(); closeSidebar(); startWriting(t.dataset.write); return; }
+  if (t.dataset.qSubmit !== undefined){ submitCard(t.closest('.q-card')); return; }
   if (t.dataset.draftPreview !== undefined){ const d = t.closest('.ai-body')?._msg?.draft; if (d) openDraftPreview(d); return; }
   if (t.dataset.draftDownload !== undefined){ const d = t.closest('.ai-body')?._msg?.draft || previewDraft; if (d) downloadDraft(d, t); return; }
-  if (t.dataset.choiceReopen !== undefined){ const m = t.closest('.ai-body')?._msg; if (m?.choice && conv.messages[conv.messages.length - 1] === m) showChoice(m); return; }
   if (t.dataset.conv){ openConv(t.dataset.conv); return; }
   if (t.dataset.vote){ vote(t); return; }
   const a = t.dataset.action; if(!a) return;
   switch(a){
-    case 'new': if (state.busy) return; closeSidebar(); renderWelcome(); ta.focus(); break;
+    case 'new': if (state.busy) return; closeSidebar(); renderWelcome(); showNotice(); break;
     case 'menu': $('#sidebar').classList.toggle('open'); break;
     case 'gov-focus': { closeSidebar(); const sel=$('#gov-select'), box=$('#gov-control'); box.classList.remove('flash'); void box.offsetWidth; box.classList.add('flash'); sel.focus(); try{ sel.showPicker && sel.showPicker(); }catch(_){} break; }
     case 'contact': openContact(); break;
@@ -1226,7 +1188,7 @@ document.addEventListener('click', e=>{
     case 'attach-remove': state.attach = null; renderAttachChip(); updateSend(); ta.focus(); break;
     case 'copy': {
       const body = t.closest('.ai-body'); const m = body._msg;
-      const txt = m ? plain(m.text, new Map((m.citations||[]).map(c=>[c.marker||c.id,c.cite]))) : body.querySelector('.ai-answer, .block')?.innerText || '';
+      const txt = m ? [plain(m.text, new Map((m.citations||[]).map(c=>[c.marker||c.id,c.cite]))), m.question ? `${m.question.question}${m.question.options ? '\n' + m.question.options.map((o) => '- ' + o).join('\n') : ''}` : ''].filter((x) => x.trim()).join('\n\n') : body.querySelector('.ai-answer, .block')?.innerText || '';
       (navigator.clipboard?navigator.clipboard.writeText(txt.trim()):Promise.reject()).then(()=>toast('Answer copied.'),()=>toast('Copy isn\'t available in this view.'));
       break;
     }
@@ -1243,6 +1205,7 @@ document.querySelectorAll('[data-ranger-icon]').forEach(el=>el.innerHTML=rangerI
 document.title = `${BOT} – OMAG's Camp Safety Assistant`;
 renderProfile();
 renderWelcome();
+showNotice();
 loadSiteSettings();
 renderDocList();
 })();

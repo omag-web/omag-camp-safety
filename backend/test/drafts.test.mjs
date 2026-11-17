@@ -48,16 +48,16 @@ test('write_document tool hands the draft to the turn', () => {
 });
 
 test('get_sample is offered only when OMAG has sample documents switched on', async () => {
-  // No samples → research tools, write_document and ask_choice.
+  // No samples → research tools, write_document and ask_member.
   let tools;
   const turn = async (a) => { tools = a.tools; return { stopReason: 'end_turn', usage: {}, content: [{ text: 'ok' }] }; };
   await runAgent({ history: [{ role: 'user', text: 'hi' }], library, turn });
-  assert.deepEqual(tools.map((t) => t.toolSpec.name), ['search_law', 'get_sections', 'write_document', 'ask_choice']);
+  assert.deepEqual(tools.map((t) => t.toolSpec.name), ['search_law', 'get_sections', 'write_document', 'ask_member']);
 
   const samples = [{ id: 'lightning', title: 'Lightning Plan', description: 'Lightning' }];
   const loadSample = async (id) => { if (id !== 'lightning') throw new Error('No such sample'); return { title: 'Lightning Plan', text: 'Camp Example stops activities when thunder is heard.', truncated: false }; };
   await runAgent({ history: [{ role: 'user', text: 'hi' }], library, turn, samples, loadSample });
-  assert.deepEqual(tools.map((t) => t.toolSpec.name), ['search_law', 'get_sections', 'write_document', 'ask_choice', 'get_sample']);
+  assert.deepEqual(tools.map((t) => t.toolSpec.name), ['search_law', 'get_sections', 'write_document', 'ask_member', 'get_sample']);
 
   const r = await runTool('get_sample', { sample_id: 'lightning' }, library, { samples, loadSample });
   assert.equal(r.result.title, 'Lightning Plan');

@@ -111,23 +111,18 @@ async function mockTurn({ messages, onText, onToolStart, tools = [] }) {
   const usage = { inputTokens: 1200, outputTokens: 180, cacheReadInputTokens: 0 };
 
   const canWrite = tools.some((t) => t.toolSpec?.name === 'write_document');
-  const canAsk = tools.some((t) => t.toolSpec?.name === 'ask_choice');
-  const lastAssistant = [...messages].reverse().find((m) => m.role === 'assistant' && m.content.some((x) => x.text))?.content.map((x) => x.text || '').join('') || '';
-  const askedDayOrOvernight = /day camp or an overnight camp/.test(lastAssistant);
-  // Multiple-choice questions: a select-all checklist to get started, and one question before a water safety plan.
-  if (!toolResults.length && canAsk && /which city facilities and programs|get started|where do (we|I) start/i.test(userText)) {
-    onText?.('Let’s start with an inventory.');
-    return { stopReason: 'tool_use', usage, content: [{ text: 'Let’s start with an inventory.' }, { toolUse: { toolUseId: 'mock-ask', name: 'ask_choice', input: {
-      question: 'Which of these does your municipality have or host?', multiple: true, exclusive: ['None', 'Not sure'],
-      options: ['City campgrounds, RV parks or campsites', 'Lakes, cabins or other overnight recreation', 'Youth day camps or summer camps', 'Outdoor youth education or adventure programs', 'Pools or aquatic centers with youth programs', 'Property used by outside camp operators', 'None', 'Not sure'] } } }] };
+  const canAsk = tools.some((t) => t.toolSpec?.name === 'ask_member');
+  const lastAsked = [...messages].reverse().find((m) => m.role === 'assistant')?.content.some((b) => /\[You asked the member:/.test(b.text || ''));
+  // "Ask me what you need to know first" → one question, as a card.
+  if (!toolResults.length && canAsk && /\bask me\b/i.test(userText)) {
+    onText?.('Happy to. First, one question.');
+    return { stopReason: 'tool_use', usage, content: [{ text: 'Happy to. First, one question.' }, { toolUse: { toolUseId: 'mock-ask', name: 'ask_member', input: {
+      question: 'Which activities does the camp include?', kind: 'multi', options: ['Swimming', 'Boating or canoeing', 'Hiking and trails', 'Field trips'], hint: 'Pick any that apply.' } } }] };
   }
-  if (!toolResults.length && canAsk && !askedDayOrOvernight && /water safety/i.test(userText)) {
-    return { stopReason: 'tool_use', usage, content: [{ toolUse: { toolUseId: 'mock-ask', name: 'ask_choice', input: {
-      question: 'Is this a day camp or an overnight camp?', options: ['Day camp', 'Overnight camp', 'Both', 'Not sure'] } } }] };
-  }
-  if (!toolResults.length && canWrite && (askedDayOrOvernight || /\b(build|create|draft|write|make|need|change|update|revise|add)\b.*\b(plan|policy|procedure|assessment|document|letter|form|checklist|it)\b/i.test(userText))) {
-    const town = userText.match(/\b((?:Town|City) of [A-Z][\w ]+?)\b(?=[.,?!]|$)/)?.[1] || 'Your Municipality';
-    const camp = userText.match(/\b(Camp [A-Z][\w]+)/)?.[1] || '[Camp name]';
+  if (!toolResults.length && canWrite && (lastAsked || /\b(build|create|draft|write|make|need|change|update|revise|add)\b.*\b(plan|policy|procedure|assessment|document|letter|form|checklist|it)\b/i.test(userText))) {
+    const allUser = messages.filter((m) => m.role === 'user').map((m) => m.content.map((b) => b.text || '').join(' ')).join(' ');
+    const town = allUser.match(/\b((?:Town|City) of [A-Z][\w ]+?)\b(?=[.,?!]|$)/)?.[1] || 'Your Municipality';
+    const camp = allUser.match(/\b(Camp [A-Z][\w]+)/)?.[1] || '[Camp name]';
     onToolStart?.('write_document');
     const revising = messages.some((m) => m.content.some((b) => /<current_draft>/.test(b.text || '')));
     return { stopReason: 'tool_use', usage, content: [{ toolUse: { toolUseId: 'mock-doc', name: 'write_document', input: {

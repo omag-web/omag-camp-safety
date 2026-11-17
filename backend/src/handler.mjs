@@ -5,7 +5,7 @@
 //   GET  /config                 → member-facing settings (welcome text, starters, disclaimer)
 //   GET  /auth-config            → Cognito ids for the admin sign-in page
 //   GET  /source?id=11-12-106    → one section's full text (for citation chips)
-//   POST /chat                   → streams NDJSON events: status | text | reset | done (with draft or choice) | error
+//   POST /chat                   → streams NDJSON events: status | text | reset | done | error
 //   POST /feedback               → thumbs up/down on an answer
 //   POST /contact                → "Talk to OMAG" message
 //   POST /documents/docx         → Word file for a document Ranger wrote: { draft, municipality } → { filename, data (base64 .docx) }
@@ -26,7 +26,10 @@ import { requireAdmin, authConfig } from './auth.mjs';
 import { matchAdmin } from './admin.mjs';
 import { refreshWebsites } from './docs.mjs';
 import { refreshPrices } from './pricing.mjs';
-import { checkRateLimit, checkDocLimit, checkAttachLimit, logTurn, logDocument, newTurnId, saveFeedback, saveContact } from './store.mjs';
+import { checkRateLimit, checkDocLimit, checkAttachLimit, logTurn, logDocument, newTurnId, saveFeedback, saveContact, rememberQuestion, takeAnswer } from './store.mjs';
+
+// Long interviews (one question at a time) need room: each question and answer is two messages.
+const MAX_CHAT_MESSAGES = 80;
 import { readAttachment, cleanAttachments } from './attachments.mjs';
 import { validateDraft, draftToDocx, draftFilename } from './drafts.mjs';
 import { samplesFor, readSample } from './samples.mjs';
@@ -116,11 +119,11 @@ async function chat(stream, body, ip, opts = {}) {
   const messages = Array.isArray(body.messages) ? cleanAttachments(body.messages.map((m) => {
     const r = redact(m?.text);
     removed.push(...r.removed);
-    return { role: m?.role, text: r.text, attachments: m?.attachments, draft: m?.role === 'user' ? m?.draft : undefined, choice: m?.role === 'assistant' ? m?.choice : undefined };
+    return { role: m?.role, text: r.text, attachments: m?.attachments, draft: m?.role === 'user' ? m?.draft : undefined, question: m?.role === 'assistant' ? m?.question : undefined };
   })) : body.messages;
   if (removed.length) console.log('removed personal details from a chat request:', [...new Set(removed)].join(', '));
   if (!ID.test(String(conversationId || ''))) return json(stream, 400, { error: 'conversationId required' });
-  if (!Array.isArray(messages) || !messages.length || messages.length > 40) return json(stream, 400, { error: 'messages required' });
+  if (!Array.isArray(messages) || !messages.length || messages.length > MAX_CHAT_MESSAGES) return json(stream, 400, { error: 'messages required' });
   const question = String(messages[messages.length - 1]?.text || '');
   if (!question.trim() || question.length > 4000) return json(stream, 400, { error: 'Question must be 1–4,000 characters.' });
 
@@ -130,7 +133,9 @@ async function chat(stream, body, ip, opts = {}) {
     if (typeof body.guidance === 'string' && body.guidance.trim()) guidance = body.guidance.slice(0, 20000);
     else if (body.useDraft !== false) guidance = (await kv.get('CONFIG', 'guidance#draft'))?.text ?? guidance;
   } else {
-    const limit = await checkRateLimit(ip, { perIp: cfg.settings.dailyLimitPerIp, global: cfg.settings.dailyLimitGlobal });
+    // Answering one of Ranger's own questions doesn't use up the member's daily questions.
+    const answer = await takeAnswer(conversationId, messages[messages.length - 2]?.question).catch(() => false);
+    const limit = await checkRateLimit(ip, { perIp: cfg.settings.dailyLimitPerIp, global: cfg.settings.dailyLimitGlobal, answer });
     if (!limit.ok) return json(stream, 429, { error: limit.reason });
   }
 
@@ -156,7 +161,8 @@ async function chat(stream, body, ip, opts = {}) {
       samples: await samplesFor(sampleForm).catch((e) => { console.error('samples unavailable', e); return []; }),
       loadSample: (id) => readSample(id, sampleForm)
     });
-    emit({ type: 'done', turnId, citations: result.citations, unread: result.unread, ...(result.draft ? { draft: result.draft } : {}), ...(result.choice ? { choice: result.choice } : {}) });
+    if (result.question && !opts.admin) await rememberQuestion(conversationId, result.question).catch((e) => console.error('could not remember question', e));
+    emit({ type: 'done', turnId, citations: result.citations, unread: result.unread, ...(result.draft ? { draft: result.draft } : {}), ...(result.question ? { question: result.question } : {}) });
   } catch (e) {
     console.error('chat failed', e);
     error = e.name || 'Error';
@@ -166,7 +172,8 @@ async function chat(stream, body, ip, opts = {}) {
     await logTurn({
       conversationId, turnId, browserId, ip, city, form, question,
       attachments: (messages[messages.length - 1]?.attachments || []).map((a) => a.name),
-      answer: result?.text, citations: result?.citations, unread: result?.unread,
+      // A question Ranger asked shows in the admin's conversation view as part of its answer.
+      answer: result?.question ? [result.text, `Question: ${result.question.question}${result.question.options ? ` (${result.question.options.join(' / ')})` : ''}`].filter(Boolean).join('\n\n') : result?.text, citations: result?.citations, unread: result?.unread,
       usage: result?.usage, toolCalls: result?.toolCalls, latencyMs: Date.now() - started,
       model: process.env.MODEL_MODE === 'mock' ? 'mock' : (result?.model || modelId), error, preview: !!opts.admin
     });

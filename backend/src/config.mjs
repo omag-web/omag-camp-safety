@@ -74,7 +74,7 @@ export function defaultSettings() {
     priceCacheReadPerM: 0,
     priceCheck: null,
     // How long conversations, feedback and messages are kept before DynamoDB deletes them.
-    retentionDays: Number(process.env.RETENTION_DAYS || 730)
+    retentionDays: Number(process.env.RETENTION_DAYS || 548)
   };
 }
 

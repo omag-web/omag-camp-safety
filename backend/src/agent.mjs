@@ -5,8 +5,8 @@ import { TOOL_SPECS, runTool } from './tools.mjs';
 import { WRITE_DOCUMENT_SPEC, GET_SAMPLE_SPEC, validateDraft, currentDraftBlock } from './drafts.mjs';
 import { metric } from './metrics.mjs';
 import { attachmentBlock } from './attachments.mjs';
+import { ASK_MEMBER_SPEC, validateQuestion, questionText } from './questions.mjs';
 import { buildSystemPrompt, FORMS } from './prompt.mjs';
-import { ASK_CHOICE_SPEC, validateChoice, choiceText } from './choices.mjs';
 
 const MAX_TOOL_ROUNDS = 8;
 const TIME_BUDGET_MS = 240_000;   // stop researching after 4 minutes so a document still finishes inside Lambda's 10-minute limit
@@ -20,7 +20,7 @@ export function isModelFailure(e) {
   if (n === 'ValidationException' && /model|end of life|not supported|deprecated|inference profile/i.test(e.message || '')) return true;
   return /ECONNRESET|ETIMEDOUT|socket hang up/i.test(e?.code || e?.message || '');
 }
-const MAX_HISTORY = 16;
+const MAX_HISTORY = 80;   // an interview is two messages per question, so keep plenty
 const MAX_MSG_CHARS = 6000;
 
 /** Validates and converts the client's [{role, text}] history into Converse messages. */
@@ -28,14 +28,15 @@ export function toConverseMessages(history) {
   if (!Array.isArray(history) || !history.length) throw new Error('messages must be a non-empty array');
   const msgs = history
     .slice(-MAX_HISTORY)
-    .filter((m) => (m.role === 'user' || m.role === 'assistant') && typeof m.text === 'string' && m.text.trim())
+    .filter((m) => (m.role === 'user' || m.role === 'assistant') && typeof m.text === 'string' && (m.text.trim() || (m.role === 'assistant' && m.question)))
     .map((m) => ({ role: m.role, content: [
       // Files the member attached come first, each marked as the member's document (see attachments.mjs).
       ...(m.role === 'user' && Array.isArray(m.attachments) ? m.attachments.map((a) => ({ text: attachmentBlock(a) })) : []),
       // The document Ranger wrote that the member is looking at, so they can ask for changes.
       ...(m.role === 'user' && m.draft ? draftBlock(m.draft) : []),
-      // A question Ranger asked with answer buttons: the model sees which buttons the member had.
-      { text: m.text.slice(0, MAX_MSG_CHARS) + (m.role === 'assistant' && m.choice ? `\n\n${choiceText(m.choice)}`.trimEnd() : '') }
+      ...(m.text.trim() ? [{ text: m.text.slice(0, MAX_MSG_CHARS) }] : []),
+      // A question Ranger asked with ask_member, so it knows what the member's next message answers.
+      ...(m.role === 'assistant' && m.question ? askedBlock(m.question) : [])
     ] }));
   while (msgs.length && msgs[0].role !== 'user') msgs.shift();
   // Merge consecutive same-role messages (Converse requires alternation).
@@ -52,7 +53,28 @@ export function toConverseMessages(history) {
     else out.push(m);
   }
   if (!out.length || out[out.length - 1].role !== 'user') throw new Error('last message must be from the user');
+  // Every question Ranger has asked and the member's answer, in one list with the newest message,
+  // so nothing already answered gets asked again however long the conversation runs.
+  const recap = interviewSoFar(history);
+  if (recap) out[out.length - 1].content.unshift({ text: recap });
   return out;
+}
+
+/** The questions Ranger asked (ask_member) and what the member answered, oldest first. */
+export function interviewSoFar(history) {
+  const pairs = [];
+  for (let i = 0; i < history.length - 1; i++) {
+    const m = history[i], next = history[i + 1];
+    if (m?.role !== 'assistant' || !m.question || next?.role !== 'user') continue;
+    let q; try { q = validateQuestion(m.question); } catch { continue; }
+    pairs.push(`- ${q.question} → ${String(next.text || '').replace(/\s+/g, ' ').trim().slice(0, 300) || '(no answer)'}`);
+  }
+  if (!pairs.length) return '';
+  return `<interview_so_far>\nQuestions you have already asked in this conversation and the member's answers (the last one is their newest message). Don't ask any of these again; build on the answers.\n${pairs.slice(-60).join('\n')}\n</interview_so_far>`;
+}
+
+function askedBlock(q) {
+  try { return [{ text: questionText(validateQuestion(q)) }]; } catch { return []; }
 }
 
 function draftBlock(d) {
@@ -67,7 +89,7 @@ export function markerIds(text) {
 /**
  * Runs the research-and-answer loop.
  * emit(event) receives {type:'status'|'text', ...} as things happen.
- * Returns { text, citations, usage, toolCalls, draft, choice }.
+ * Returns { text, citations, usage, toolCalls }.
  */
 export async function runAgent({ history, form, city, library, emit = () => {}, turn = converseTurn, guidance, modelId, fallbackModelId, samples = [], loadSample, timeBudgetMs = TIME_BUDGET_MS, now = Date.now }) {
   const started = now();
@@ -89,7 +111,7 @@ export async function runAgent({ history, form, city, library, emit = () => {}, 
     }
   };
   const system = buildSystemPrompt({ form: FORMS[form] ? form : undefined, city, guidance, omagDocs: library.omagTitles || [], samples });
-  const tools = [...TOOL_SPECS, WRITE_DOCUMENT_SPEC, ASK_CHOICE_SPEC, ...(samples.length && loadSample ? [GET_SAMPLE_SPEC] : [])];
+  const tools = [...TOOL_SPECS, WRITE_DOCUMENT_SPEC, ASK_MEMBER_SPEC, ...(samples.length && loadSample ? [GET_SAMPLE_SPEC] : [])];
   const drafts = [];
   // Writing a document produces no text for a while, so say what's happening.
   const onToolStart = (name) => { if (name === 'write_document') emit({ type: 'status', text: 'Writing your document. Longer documents take a few minutes' }); };
@@ -98,7 +120,7 @@ export async function runAgent({ history, form, city, library, emit = () => {}, 
   const usage = { inputTokens: 0, outputTokens: 0, cacheReadInputTokens: 0, cacheWriteInputTokens: 0 };
   const toolCalls = [];
   let finalText = '';
-  let choice = null;
+  let question = null;             // a question for the member (ask_member) ends the turn
 
   // Sections cited earlier in the conversation stay citable.
   for (const m of history) if (m.role === 'assistant') markerIds(m.text).forEach((id) => library.get(id) && seen.add(library.normalizeId(id)));
@@ -112,25 +134,6 @@ export async function runAgent({ history, form, city, library, emit = () => {}, 
     messages.push({ role: 'assistant', content: res.content });
 
     const uses = res.content.filter((b) => b.toolUse);
-    // A multiple-choice question ends the turn: the member answers in a pop-up, and that answer is their next message.
-    const askUse = uses.find((u) => u.toolUse.name === 'ask_choice');
-    if (askUse) {
-      try { choice = validateChoice(askUse.toolUse.input); } catch { choice = null; }
-    }
-    if (choice) {
-      // A document written in the same reply is still kept.
-      for (const { toolUse } of uses.filter((u) => u.toolUse.name === 'write_document')) {
-        await runTool(toolUse.name, toolUse.input, library, { seen, drafts });
-        toolCalls.push({ name: toolUse.name, input: { title: String(toolUse.input?.title || '').slice(0, 200) } });
-      }
-      toolCalls.push({ name: 'ask_choice', input: choice });
-      const lead = turnText.trim();
-      // Don't show the question twice if the model already wrote it.
-      const add = lead.endsWith(choice.question) ? '' : (lead ? '\n\n' : '') + choice.question;
-      if (add) emit({ type: 'text', text: add });
-      finalText = (turnText + add).trim();
-      break;
-    }
     // Out of rounds or time, a finished document is still kept; research calls are not run.
     const writes = uses.filter((u) => u.toolUse.name === 'write_document');
     if (lastRound && writes.length) {
@@ -143,6 +146,22 @@ export async function runAgent({ history, form, city, library, emit = () => {}, 
         : '');
       if (finalText && !turnText) emit({ type: 'text', text: finalText });
       if (finalText) break;
+    }
+    // Ranger asked the member a question: the turn ends here and waits for the answer.
+    const askUse = uses.find((u) => u.toolUse.name === 'ask_member');
+    if (askUse && !writes.length) {
+      try {
+        question = validateQuestion(askUse.toolUse.input);
+        toolCalls.push({ name: 'ask_member', input: { question: question.question, kind: question.kind } });
+        finalText = turnText;
+        break;
+      } catch (e) {
+        if (lastRound) { finalText = turnText || 'Could you tell me a bit more about what you need?'; if (!turnText) emit({ type: 'text', text: finalText }); break; }
+        // A malformed question goes back to the model to fix, like any tool error.
+        messages.push({ role: 'user', content: uses.map(({ toolUse }) => ({ toolResult: { toolUseId: toolUse.toolUseId, content: [{ json: toolUse === askUse.toolUse ? { error: `${e.message} Ask again.` } : { error: 'Not run: ask one question by itself.' } }] } })) });
+        if (turnText) emit({ type: 'reset' });
+        continue;
+      }
     }
     if (res.stopReason !== 'tool_use' || !uses.length || lastRound) {
       finalText = turnText;
@@ -183,5 +202,5 @@ export async function runAgent({ history, form, city, library, emit = () => {}, 
   }
   // The last version written this turn is the one the member sees.
   const draft = drafts[drafts.length - 1];
-  return { text: finalText, citations, unread, usage, toolCalls, draft, ...(choice ? { choice } : {}), model: activeModel, fellBack };
+  return { text: finalText, citations, unread, usage, toolCalls, draft, question, model: activeModel, fellBack };
 }
