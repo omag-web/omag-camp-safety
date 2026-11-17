@@ -26,7 +26,7 @@
     "aws-jwt-verify": "^5.2.1",
     "docx": "^9.15.4",
     "mammoth": "^1.13.0",
-    "unpdf": "^1.9.1"
+    "unpdf": "^2.2.0"
   },
   "devDependencies": {
     "pizzip": "^3.3.0"
