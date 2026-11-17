@@ -569,7 +569,7 @@ h1,h2,h3,.brand-name{font-family:'Bitter',Georgia,serif;letter-spacing:-.005em}
             <p style="margin:6px 0"><strong>Reset password</strong>: for someone who's locked out. Emails them a code; they use "Forgot password?" on the sign-in page.</p>
             <p style="margin:6px 0"><strong>Turn off</strong>: they can't sign in, and are signed out within a minute. Reversible.</p>
             <p style="margin:6px 0"><strong>Remove</strong>: deletes their account. To add them back, invite them again.</p>
-            <p style="margin:6px 0"><strong>Reset two-step</strong>: for someone who lost or replaced their phone. At their next sign-in they set it up again with the new phone (or, if two-step isn't required, sign in with just their password).</p>
+            <p style="margin:6px 0"><strong>Reset two-step</strong>: for someone who lost or replaced their phone. It only appears next to people whose two-step is <strong>On</strong>; someone showing <strong>Off</strong> hasn't set it up yet, so there's nothing to reset. After a reset they set it up again with the new phone at their next sign-in (or, if two-step isn't required, sign in with just their password).</p>
             <p style="margin:6px 0">You can't turn off or remove yourself, or take Admins away from yourself.</p>
           </div>
         </div>
@@ -1618,7 +1618,7 @@ function renderAdmins(r) {
       <td><strong>${esc(u.email)}</strong>${u.you ? ' <span class="pill muted">You</span>' : ''}<div class="hint">Added ${fmtDate(u.createdAt)}</div></td>
       <td>${areaChips(u.areas)}</td>
       <td><span class="pill ${expired ? 'bad' : tone}">${expired ? 'Invite expired' : label}</span>${note && !expired ? `<div class="hint" style="margin-top:3px">${note}</div>` : ''}</td>
-      <td>${u.mfa === true ? '<span class="pill ok">On</span>' : u.mfa === false ? '<span class="pill muted">Off</span>' : ''}</td>
+      <td>${u.mfa === true ? '<span class="pill ok">On</span>' : u.mfa === false ? `<span class="pill muted">Off</span>${u.enabled && AUTH?.mfaRequired ? '<div class="hint" style="margin-top:3px">Sets it up at next sign-in</div>' : ''}` : ''}</td>
       <td style="text-align:right"><div class="row" style="justify-content:flex-end;gap:6px">${u.you ? '' : `
         <button class="btn sm" data-adm="access" data-id="${id}">Access</button>
         ${u.mfa ? `<button class="btn sm" data-adm="reset-mfa" data-id="${id}">Reset two-step</button>` : ''}
