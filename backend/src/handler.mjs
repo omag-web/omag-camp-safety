@@ -5,7 +5,7 @@
 //   GET  /config                 → member-facing settings (welcome text, starters, disclaimer)
 //   GET  /auth-config            → Cognito ids for the admin sign-in page
 //   GET  /source?id=11-12-106    → one section's full text (for citation chips)
-//   POST /chat                   → streams NDJSON events: status | text | reset | done | error
+//   POST /chat                   → streams NDJSON events: status | text | reset | done (with draft or choice) | error
 //   POST /feedback               → thumbs up/down on an answer
 //   POST /contact                → "Talk to OMAG" message
 //   POST /documents/docx         → Word file for a document Ranger wrote: { draft, municipality } → { filename, data (base64 .docx) }
@@ -116,7 +116,7 @@ async function chat(stream, body, ip, opts = {}) {
   const messages = Array.isArray(body.messages) ? cleanAttachments(body.messages.map((m) => {
     const r = redact(m?.text);
     removed.push(...r.removed);
-    return { role: m?.role, text: r.text, attachments: m?.attachments, draft: m?.role === 'user' ? m?.draft : undefined };
+    return { role: m?.role, text: r.text, attachments: m?.attachments, draft: m?.role === 'user' ? m?.draft : undefined, choice: m?.role === 'assistant' ? m?.choice : undefined };
   })) : body.messages;
   if (removed.length) console.log('removed personal details from a chat request:', [...new Set(removed)].join(', '));
   if (!ID.test(String(conversationId || ''))) return json(stream, 400, { error: 'conversationId required' });
@@ -156,7 +156,7 @@ async function chat(stream, body, ip, opts = {}) {
       samples: await samplesFor(sampleForm).catch((e) => { console.error('samples unavailable', e); return []; }),
       loadSample: (id) => readSample(id, sampleForm)
     });
-    emit({ type: 'done', turnId, citations: result.citations, unread: result.unread, ...(result.draft ? { draft: result.draft } : {}) });
+    emit({ type: 'done', turnId, citations: result.citations, unread: result.unread, ...(result.draft ? { draft: result.draft } : {}), ...(result.choice ? { choice: result.choice } : {}) });
   } catch (e) {
     console.error('chat failed', e);
     error = e.name || 'Error';

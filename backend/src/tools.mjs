@@ -42,6 +42,10 @@ const MAX_SECTION_CHARS = 9000;
  * ctx: { samples, seen, drafts, loadSample }
  */
 export function runTool(name, input, library, ctx = {}) {
+  if (name === 'ask_choice') {
+    // Only reached when the question couldn't be used (see agent.mjs); a good one ends the turn.
+    return { status: 'Getting a question ready', ids: [], result: { error: 'ask_choice needs a question and at least two different options. Try again, or ask the question in plain text.' } };
+  }
   if (name === 'write_document') {
     let draft;
     try { draft = validateDraft(input); } catch (e) {

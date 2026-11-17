@@ -6,6 +6,7 @@ import { WRITE_DOCUMENT_SPEC, GET_SAMPLE_SPEC, validateDraft, currentDraftBlock 
 import { metric } from './metrics.mjs';
 import { attachmentBlock } from './attachments.mjs';
 import { buildSystemPrompt, FORMS } from './prompt.mjs';
+import { ASK_CHOICE_SPEC, validateChoice, choiceText } from './choices.mjs';
 
 const MAX_TOOL_ROUNDS = 8;
 const TIME_BUDGET_MS = 240_000;   // stop researching after 4 minutes so a document still finishes inside Lambda's 10-minute limit
@@ -33,7 +34,8 @@ export function toConverseMessages(history) {
       ...(m.role === 'user' && Array.isArray(m.attachments) ? m.attachments.map((a) => ({ text: attachmentBlock(a) })) : []),
       // The document Ranger wrote that the member is looking at, so they can ask for changes.
       ...(m.role === 'user' && m.draft ? draftBlock(m.draft) : []),
-      { text: m.text.slice(0, MAX_MSG_CHARS) }
+      // A question Ranger asked with answer buttons: the model sees which buttons the member had.
+      { text: m.text.slice(0, MAX_MSG_CHARS) + (m.role === 'assistant' && m.choice ? `\n\n${choiceText(m.choice)}`.trimEnd() : '') }
     ] }));
   while (msgs.length && msgs[0].role !== 'user') msgs.shift();
   // Merge consecutive same-role messages (Converse requires alternation).
@@ -65,7 +67,7 @@ export function markerIds(text) {
 /**
  * Runs the research-and-answer loop.
  * emit(event) receives {type:'status'|'text', ...} as things happen.
- * Returns { text, citations, usage, toolCalls }.
+ * Returns { text, citations, usage, toolCalls, draft, choice }.
  */
 export async function runAgent({ history, form, city, library, emit = () => {}, turn = converseTurn, guidance, modelId, fallbackModelId, samples = [], loadSample, timeBudgetMs = TIME_BUDGET_MS, now = Date.now }) {
   const started = now();
@@ -87,7 +89,7 @@ export async function runAgent({ history, form, city, library, emit = () => {}, 
     }
   };
   const system = buildSystemPrompt({ form: FORMS[form] ? form : undefined, city, guidance, omagDocs: library.omagTitles || [], samples });
-  const tools = [...TOOL_SPECS, WRITE_DOCUMENT_SPEC, ...(samples.length && loadSample ? [GET_SAMPLE_SPEC] : [])];
+  const tools = [...TOOL_SPECS, WRITE_DOCUMENT_SPEC, ASK_CHOICE_SPEC, ...(samples.length && loadSample ? [GET_SAMPLE_SPEC] : [])];
   const drafts = [];
   // Writing a document produces no text for a while, so say what's happening.
   const onToolStart = (name) => { if (name === 'write_document') emit({ type: 'status', text: 'Writing your document. Longer documents take a few minutes' }); };
@@ -96,6 +98,7 @@ export async function runAgent({ history, form, city, library, emit = () => {}, 
   const usage = { inputTokens: 0, outputTokens: 0, cacheReadInputTokens: 0, cacheWriteInputTokens: 0 };
   const toolCalls = [];
   let finalText = '';
+  let choice = null;
 
   // Sections cited earlier in the conversation stay citable.
   for (const m of history) if (m.role === 'assistant') markerIds(m.text).forEach((id) => library.get(id) && seen.add(library.normalizeId(id)));
@@ -109,6 +112,25 @@ export async function runAgent({ history, form, city, library, emit = () => {}, 
     messages.push({ role: 'assistant', content: res.content });
 
     const uses = res.content.filter((b) => b.toolUse);
+    // A multiple-choice question ends the turn: the member answers in a pop-up, and that answer is their next message.
+    const askUse = uses.find((u) => u.toolUse.name === 'ask_choice');
+    if (askUse) {
+      try { choice = validateChoice(askUse.toolUse.input); } catch { choice = null; }
+    }
+    if (choice) {
+      // A document written in the same reply is still kept.
+      for (const { toolUse } of uses.filter((u) => u.toolUse.name === 'write_document')) {
+        await runTool(toolUse.name, toolUse.input, library, { seen, drafts });
+        toolCalls.push({ name: toolUse.name, input: { title: String(toolUse.input?.title || '').slice(0, 200) } });
+      }
+      toolCalls.push({ name: 'ask_choice', input: choice });
+      const lead = turnText.trim();
+      // Don't show the question twice if the model already wrote it.
+      const add = lead.endsWith(choice.question) ? '' : (lead ? '\n\n' : '') + choice.question;
+      if (add) emit({ type: 'text', text: add });
+      finalText = (turnText + add).trim();
+      break;
+    }
     // Out of rounds or time, a finished document is still kept; research calls are not run.
     const writes = uses.filter((u) => u.toolUse.name === 'write_document');
     if (lastRound && writes.length) {
@@ -161,5 +183,5 @@ export async function runAgent({ history, form, city, library, emit = () => {}, 
   }
   // The last version written this turn is the one the member sees.
   const draft = drafts[drafts.length - 1];
-  return { text: finalText, citations, unread, usage, toolCalls, draft, model: activeModel, fellBack };
+  return { text: finalText, citations, unread, usage, toolCalls, draft, ...(choice ? { choice } : {}), model: activeModel, fellBack };
 }
