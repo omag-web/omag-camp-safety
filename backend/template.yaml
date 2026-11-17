@@ -159,6 +159,7 @@ Resources:
     Properties:
       UserPoolId: !Ref AdminUserPool
       ClientName: ranger-admin-web
+      AuthSessionValidity: 15   # minutes to finish a sign-in step (default 3 is too short to set up an authenticator app)
       GenerateSecret: false
       ExplicitAuthFlows: [ALLOW_USER_PASSWORD_AUTH, ALLOW_REFRESH_TOKEN_AUTH]
       PreventUserExistenceErrors: ENABLED

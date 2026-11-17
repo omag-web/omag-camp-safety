@@ -631,6 +631,7 @@ async function cognito(target, body) {
       EnableSoftwareTokenMFAException: 'That code isn’t right. Check the time on your phone is set automatically, and try the newest code.'
     }[type] || j.message || 'Sign-in failed.';
     if (type === 'NotAuthorizedException' && /disabled/i.test(j.message || '')) throw Object.assign(new Error('Your admin access is turned off. Ask another admin if you need it back.'), { type });
+    if (type === 'NotAuthorizedException' && /session/i.test(j.message || '')) throw Object.assign(new Error('That sign-in took too long and timed out. Sign in again with your email and password.'), { type, sessionExpired: true });
     throw Object.assign(new Error(msg), { type });
   }
   return j;
@@ -721,6 +722,15 @@ $('#login-form').addEventListener('submit', async (e) => {
     ['#li-pw', '#li-new', '#li-mfa', '#li-setup-code'].forEach((s) => ($(s).value = ''));
     startApp();
   } catch (err) {
+    if (err.sessionExpired) {
+      // Cognito sign-in steps time out. Go back to the start; the user sets up a fresh code there.
+      loginState = { step: 'pw', session: null, email: loginState.email };
+      setLoginStep('pw');
+      ['#li-pw', '#li-new', '#li-mfa', '#li-setup-code'].forEach((s) => ($(s).value = ''));
+      $('#li-email').value = loginState.email;
+      $('#login-err').textContent = err.message + ' If you already added Ranger to your authenticator app, delete that entry first: you’ll get a new code to scan.';
+      return;
+    }
     $('#login-err').textContent = err.message;
   } finally { btn.disabled = false; }
 });
