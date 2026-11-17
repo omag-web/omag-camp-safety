@@ -3,5 +3,5 @@
 // When the page is opened from http://localhost (npm run dev), this is ignored
 // and the local dev server is used.
 window.RANGER_CONFIG = {
-  apiUrl: ''
+  apiUrl: 'https://pufbiqrufcsyurj7s3mqz42pfu0izycy.lambda-url.us-east-1.on.aws'
 };

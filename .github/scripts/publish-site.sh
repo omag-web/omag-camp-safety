@@ -2,7 +2,7 @@
 # Copies web/ to Ranger's site bucket and refreshes CloudFront.
 # Used by deploy.yml (after the stack deploys) and site.yml (when web/ changes).
 # Does nothing until the stack has a SiteDomain.
-set -euo RANGEREFAIL_KEEP
+set -euo pipefail
 STACK="${STACK:-ranger-camp-safety}"
 out() { aws cloudformation describe-stacks --stack-name "$STACK" --query "Stacks[0].Outputs[?OutputKey=='$1'].OutputValue" --output text; }
 BUCKET=$(out SiteBucketName)

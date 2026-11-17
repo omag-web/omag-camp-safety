@@ -16,7 +16,7 @@ export function installShim() {
   };
 }
 
-/** A response stream that collects output (for tests) or RANGERES_KEEP to a Node http response. */
+/** A response stream that collects output (for tests) or pipes to a Node http response. */
 export function makeResponseStream(httpRes) {
   const chunks = [];
   let meta = { statusCode: 200, headers: {} };
